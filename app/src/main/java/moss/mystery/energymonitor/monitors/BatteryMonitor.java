@@ -35,6 +35,8 @@ public class BatteryMonitor extends BroadcastReceiver {
             return;
         }
 
+        Log.d("Battery Monitor", "CHARGE STATE: " + chargeState + " CHARGING = " + isCharging);
+
         //Charger has been connected
         if(isCharging){
             chargeState = true;

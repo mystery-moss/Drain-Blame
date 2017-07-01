@@ -76,6 +76,9 @@ public class MonitorLibrary {
     }
     public static void resetScreenCounter(){
         screenOnTime = 0;
+        if(screenOn){
+            screenStart = System.currentTimeMillis();
+        }
     }
     public static long getScreenOnTime(){
         if(screenOn){
