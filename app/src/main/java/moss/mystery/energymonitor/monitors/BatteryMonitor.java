@@ -35,7 +35,7 @@ public class BatteryMonitor extends BroadcastReceiver {
             return;
         }
 
-        Log.d("Battery Monitor", "CHARGE STATE: " + chargeState + " CHARGING = " + isCharging);
+        //Log.d("Battery Monitor", "CHARGE STATE: " + chargeState + " CHARGING = " + isCharging);
 
         //Charger has been connected
         if(isCharging){
@@ -50,6 +50,7 @@ public class BatteryMonitor extends BroadcastReceiver {
             Log.d("Battery Monitor", "Entering else! Old = " + previousLevel + ", New = " + level);
             if(MonitorLibrary.isCharging()){
                 MonitorLibrary.chargerDisconnected();
+                chargeState = false;
                 Log.d("Battery Monitor", "Charger disconnected");
                 //If charger has just been disconnected and battery is not at 100%, ignore first
                 //interval (because it may be shorter than normal)
