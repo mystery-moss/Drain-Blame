@@ -2,6 +2,8 @@ package moss.mystery.energymonitor.monitors;
 
 import android.content.Context;
 import android.hardware.display.DisplayManager;
+import android.os.Build;
+import android.os.PowerManager;
 import android.util.Log;
 import android.view.Display;
 
@@ -31,19 +33,24 @@ public class MonitorLibrary {
         //Handles multiple displays, though in practice this situation is undefined
         screenOn = false;
         resetScreenCounter();
-        // If API >= 20:
-        DisplayManager dm = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
-        for (Display display : dm.getDisplays()) {
-            if (display.getState() != Display.STATE_OFF) {
+
+        if(Build.VERSION.SDK_INT >= 20) {
+            DisplayManager dm = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+            for (Display display : dm.getDisplays()) {
+                if (display.getState() != Display.STATE_OFF) {
+                    screenOn();
+                    Log.d("MonitorLibrary", "Startup - screen is on");
+                    //TODO: Confirm this breaks from the for loop... I forget
+                    break;
+                }
+            }
+        } else {
+            PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            if(powerManager.isScreenOn()){
                 screenOn();
-                Log.d("MonitorLibrary", "Screen is on");
-                //TODO: Confirm this breaks from the for loop... I forget
-                break;
+                Log.d("MonitorLibrary", "Startup - screen is on");
             }
         }
-        // If API < 20:
-        //PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-        //screenState = powerManager.isScreenOn();
     }
     //Battery tracking==============================================================================
     public static int getCurrentBatteryLevel(){
