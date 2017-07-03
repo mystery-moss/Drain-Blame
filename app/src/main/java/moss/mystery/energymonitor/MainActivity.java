@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        //TODO: For ArrayList only, hand-written counted loop is more efficient than iterator
         for(Interval interval : intervals){
             procs.append(interval.level).append(" - ").append(interval.level - 1);
             procs.append(": ").append(interval.length).append(" - Screen time = ").append(interval.screenOnTime).append('\n');

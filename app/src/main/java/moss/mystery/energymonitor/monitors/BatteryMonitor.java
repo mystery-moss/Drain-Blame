@@ -61,6 +61,8 @@ public class BatteryMonitor extends BroadcastReceiver {
                 }
             }
             //Begin a new battery interval
+            //TODO: If this is long running, maybe split it out into a separate thread???
+            //As long as timestamps are accurate - could maybe get screen on time in this thread
             MonitorLibrary.newInterval(level, System.currentTimeMillis());
             Log.d("Battery Monitor", "Beginning new interval - level = " + level);
         }
