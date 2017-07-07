@@ -32,18 +32,18 @@
                 android:text="Start Interval" />
 
             <Button
-                android:id="@+id/button7"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:onClick="listProcs"
-                android:text="List Processes" />
-
-            <Button
                 android:id="@+id/button5"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:onClick="reset"
                 android:text="Reset" />
+
+            <Button
+                android:id="@+id/button7"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="listProcs"
+                android:text="List Processes" />
 
             <TextView
                 android:id="@+id/tempText"

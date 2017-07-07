@@ -1,6 +1,5 @@
 package moss.mystery.energymonitor;
 
-import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -10,22 +9,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOError;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import moss.mystery.energymonitor.monitors.BatteryMonitor;
 import moss.mystery.energymonitor.monitors.Interval;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
 import moss.mystery.energymonitor.monitors.ScreenMonitor;
+import moss.mystery.energymonitor.processes.Process;
 import moss.mystery.energymonitor.processes.ProcessLibrary;
-
-import static moss.mystery.energymonitor.processes.ProcessLibrary.extractTime;
-import static moss.mystery.energymonitor.processes.ProcessLibrary.getNames;
-import static moss.mystery.energymonitor.processes.ProcessLibrary.getPIDs;
 
 public class MainActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST_PACKAGE_USAGE_STATS = 1;
@@ -81,21 +72,45 @@ public class MainActivity extends AppCompatActivity {
         MonitorLibrary.newInterval(getApplicationContext(), 90, System.currentTimeMillis());
     }
 
+    //private static int[] pids;
+    //private static int[] ustart;
+    //private static int[] sstart;
+
     public void listProcs(View view){
         TextView box = (TextView) findViewById(R.id.tempText);
 
         long start = System.currentTimeMillis();
         StringBuilder procs = new StringBuilder("PROCESSES:\n");
 
-        int[] pids = getPIDs();
-        String[] names = getNames(pids);
+        ProcessLibrary.startup();
+        ProcessLibrary.getPIDs();
+        ProcessLibrary.parsePIDs();
 
-        extractTime(pids);
-
-        int length = pids.length;
-        for(int i = 0; i < length; i++){
-            procs.append(names[i]).append(" - ").append(ProcessLibrary.utime[i]).append('\n');
+        for(Process proc : ProcessLibrary.processes){
+            procs.append(proc.name).append(" - ").append(proc.time).append('\n');
         }
+
+//        //Get initial values for utime
+//        if(pids == null){
+//            pids = getPIDs();
+//            extractTime(pids);
+//            int length = pids.length;
+//            ustart = new int[length];
+//            sstart = new int[length];
+//            System.arraycopy(ProcessLibrary.utime, 0, ustart, 0, length);
+//            System.arraycopy(ProcessLibrary.stime, 0, sstart, 0, length);
+//        }
+//
+//        //int[] pids = getPIDs();
+//        String[] names = getNames(pids);
+//
+//        extractTime(pids);
+//
+//        int length = pids.length;
+//        for(int i = 0; i < length; i++){
+//            procs.append(names[i]).append("\n   ").append(ProcessLibrary.utime[i] - ustart[i]);
+//            procs.append(", ").append(ProcessLibrary.stime[i] - sstart[i]).append('\n');
+//        }
 
         procs.append("\nTIME TAKEN = ").append(String.valueOf(System.currentTimeMillis() - start));
 
