@@ -1,6 +1,9 @@
 package moss.mystery.energymonitor.monitors;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.display.DisplayManager;
 import android.os.Build;
 import android.os.PowerManager;
@@ -23,6 +26,7 @@ public class MonitorLibrary {
     private static boolean firstInterval = true;
     private static long intervalStart;
     private static ArrayList<Interval> intervals = new ArrayList<Interval>();
+    private static AlarmManager alarm;
 
     //Control=======================================================================================
     public static void startup(Context context){
@@ -104,7 +108,7 @@ public class MonitorLibrary {
     public static ArrayList<Interval> getIntervals(){
         return intervals;
     }
-    public static void newInterval(int level, long timestamp){
+    public static void newInterval(Context context, int level, long timestamp){
         //Don't record details of previous interval for the first interval
         if(!firstInterval){
             intervals.add(new Interval(currentBatteryLevel, timestamp - intervalStart, getScreenOnTime()));
@@ -113,8 +117,41 @@ public class MonitorLibrary {
             firstInterval = false;
         }
 
+        //Periodically poll for running processes
+        Log.d("MonitorLibrary", "Setting up the alarm");
+        //Increase context capabilities?
+        context = context.getApplicationContext();
+
+        Intent intent = new Intent(context, AlarmReceiver.class);
+        final PendingIntent pIntent = PendingIntent.getBroadcast(context, AlarmReceiver.REQUEST_CODE,
+                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        long firstMillis = System.currentTimeMillis();
+
+        //Halt any existing alarms
+        if (alarm != null){
+            alarm.cancel (pIntent);
+        }
+
+        alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        //Fire alarm immediately, then every thirty seconds
+        //TODO: Why does it only trigger every minute, not every 30 seconds?
+        //And even that is pretty inconsistent...
+        alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, firstMillis, 30 * 1000, pIntent);
+
         resetScreenCounter();
         intervalStart = timestamp;
         currentBatteryLevel = level;
+    }
+
+    //TODO: Tidy this up, work out how context actually works
+    public static void cancelAlarm(Context context){
+        Intent intent = new Intent(context, AlarmReceiver.class);
+        final PendingIntent pIntent = PendingIntent.getBroadcast(context, AlarmReceiver.REQUEST_CODE,
+                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        long firstMillis = System.currentTimeMillis();
+
+        if (alarm != null){
+            alarm.cancel (pIntent);
+        }
     }
 }
