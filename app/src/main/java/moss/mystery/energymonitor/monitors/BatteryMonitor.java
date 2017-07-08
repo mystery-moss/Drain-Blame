@@ -28,6 +28,8 @@ public class BatteryMonitor extends BroadcastReceiver {
             return;
         }
 
+
+
         //If isCharging state has not changed and level has not dropped, ignore this broadcast
         if(isCharging == isChargingNew && (level >= previousLevel) || level == -1){
             return;
@@ -63,7 +65,7 @@ public class BatteryMonitor extends BroadcastReceiver {
             //Begin a new battery interval
             //TODO: If this is long running, maybe split it out into a separate thread???
             //As long as timestamps are accurate - could maybe get screen on time in this thread
-            MonitorLibrary.newInterval(level, System.currentTimeMillis());
+            MonitorLibrary.newInterval(context, level, System.currentTimeMillis());
             Log.d("Battery Monitor", "Beginning new interval - level = " + level);
         }
     }

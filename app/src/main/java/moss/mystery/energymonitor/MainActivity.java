@@ -1,6 +1,5 @@
 package moss.mystery.energymonitor;
 
-import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -16,6 +15,8 @@ import moss.mystery.energymonitor.monitors.BatteryMonitor;
 import moss.mystery.energymonitor.monitors.Interval;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
 import moss.mystery.energymonitor.monitors.ScreenMonitor;
+import moss.mystery.energymonitor.processes.Process;
+import moss.mystery.energymonitor.processes.ProcessLibrary;
 
 public class MainActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST_PACKAGE_USAGE_STATS = 1;
@@ -31,13 +32,15 @@ public class MainActivity extends AppCompatActivity {
         screenMonitor = new ScreenMonitor();
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
-        this.registerReceiver(screenMonitor, new IntentFilter(filter));
+        getApplicationContext().registerReceiver(screenMonitor, new IntentFilter(filter));
 
         //Register battery level change receiver
         //TODO: Which thread does this run in? Should I split it off to another one?
         //TODO: Should I explicitly start monitoring intervals here too?
         batteryMonitor = new BatteryMonitor();
-        this.registerReceiver(batteryMonitor, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        getApplicationContext().registerReceiver(batteryMonitor, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+
+        ProcessLibrary.startup(); //Minimal
 
     }
 
@@ -67,11 +70,42 @@ public class MainActivity extends AppCompatActivity {
         MonitorLibrary.startup(this);
     }
 
+    public void startInterval(View view){
+        MonitorLibrary.newInterval(getApplicationContext(), 90, System.currentTimeMillis());
+    }
+
+    //private static int[] pids;
+    //private static int[] ustart;
+    //private static int[] sstart;
+
+    public void listProcs(View view){
+        TextView box = (TextView) findViewById(R.id.tempText);
+
+        long start = System.currentTimeMillis();
+        StringBuilder procs = new StringBuilder("PROCESSES:\n");
+
+        ProcessLibrary.parseProcs();
+
+        for(String key : ProcessLibrary.processes.keySet()){
+            Process proc = ProcessLibrary.processes.get(key);
+            procs.append(key).append(" - ").append(proc.elapsedTime).append('\n');
+        }
+
+        procs.append("\nTIME TAKEN = ").append(String.valueOf(System.currentTimeMillis() - start));
+
+        box.setText(procs);
+    }
+
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        unregisterReceiver(batteryMonitor);
-        unregisterReceiver(screenMonitor);
+        try {
+            unregisterReceiver(batteryMonitor);
+            unregisterReceiver(screenMonitor);
+        }
+        catch(Exception e){
+            Log.d("MainActivity", "Receivers not registered:\n" + e);
+        }
         Log.d("MainActivity", "Exited");
     }
 }
