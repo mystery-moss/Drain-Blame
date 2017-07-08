@@ -40,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
         batteryMonitor = new BatteryMonitor();
         getApplicationContext().registerReceiver(batteryMonitor, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
+        ProcessLibrary.startup(); //Minimal
+
     }
 
     public void listIntervals(View view){
@@ -82,35 +84,12 @@ public class MainActivity extends AppCompatActivity {
         long start = System.currentTimeMillis();
         StringBuilder procs = new StringBuilder("PROCESSES:\n");
 
-        ProcessLibrary.startup();
-        ProcessLibrary.getPIDs();
-        ProcessLibrary.parsePIDs();
+        ProcessLibrary.parseProcs();
 
-        for(Process proc : ProcessLibrary.processes){
-            procs.append(proc.name).append(" - ").append(proc.time).append('\n');
+        for(String key : ProcessLibrary.processes.keySet()){
+            Process proc = ProcessLibrary.processes.get(key);
+            procs.append(key).append(" - ").append(proc.elapsedTime).append('\n');
         }
-
-//        //Get initial values for utime
-//        if(pids == null){
-//            pids = getPIDs();
-//            extractTime(pids);
-//            int length = pids.length;
-//            ustart = new int[length];
-//            sstart = new int[length];
-//            System.arraycopy(ProcessLibrary.utime, 0, ustart, 0, length);
-//            System.arraycopy(ProcessLibrary.stime, 0, sstart, 0, length);
-//        }
-//
-//        //int[] pids = getPIDs();
-//        String[] names = getNames(pids);
-//
-//        extractTime(pids);
-//
-//        int length = pids.length;
-//        for(int i = 0; i < length; i++){
-//            procs.append(names[i]).append("\n   ").append(ProcessLibrary.utime[i] - ustart[i]);
-//            procs.append(", ").append(ProcessLibrary.stime[i] - sstart[i]).append('\n');
-//        }
 
         procs.append("\nTIME TAKEN = ").append(String.valueOf(System.currentTimeMillis() - start));
 

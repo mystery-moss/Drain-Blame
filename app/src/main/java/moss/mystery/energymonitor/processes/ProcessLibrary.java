@@ -6,6 +6,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.TreeSet;
 
 /**
@@ -13,118 +16,96 @@ import java.util.TreeSet;
  */
 
 public class ProcessLibrary {
-    public static TreeSet<Process> processes;
+    private static final String PROC = "/proc";
+    private static final String CMDLINE = "/proc/%d/cmdline";
+    private static final String STAT = "/proc/%d/stat";
+    private static final String DEBUG = "ProcessLibrary";
+    public static HashMap<String, Process> processes;
 
     //TODO: This.
     public static boolean checkPermission(){
         return true;
     }
 
+    //TODO: This resets all process info, so don't forget to remove it later!
     public static boolean startup(){
-        processes = new TreeSet<>();
+        processes = new HashMap<String, Process>();
 
         return checkPermission();
     }
 
-    private static int[] pids;
-
-    //TODO: Look into optimisations here, as this will run regularly
-    public static void getPIDs(){
-        File[] files = new File("/proc").listFiles();
-        int[] pidsTemp = new int[files.length];
-        int i = 0;
+    //TODO: Look into optimisations here, as this will run regularly and takes the longest
+    //Main optimisation would be to store list of forbidden files, avoid trying to access them each call
+    public static void parseProcs(){
+        //Parse /proc directory
+        File[] files = new File(PROC).listFiles();
         for (File file : files) {
-            if (file.isDirectory()) {
+            if (file.isDirectory()) { //TODO: TEST - If file no longer exists, this just returns false and all is well
                 int pid;
                 try {
                     pid = Integer.parseInt(file.getName());
                 } catch (NumberFormatException e) {
                     continue;
                 }
-                pidsTemp[i] = pid;
-                i++;
+                //Get process name
+                String name = getName(pid);
+                if(name == null){
+                    continue;
+                }
+                //Get process time values
+                long time = getTime(pid);
+                if(time == -1){
+                    continue;
+                }
+
+                //If process not already recorded, add it to store, else update elapsed time
+                Process proc = processes.get(name);
+                if(proc == null){
+                    processes.put(name, new Process(time));
+                } else {
+                    proc.updateTime(time);
+                }
             }
         }
-        pids = new int[i];
-        System.arraycopy(pidsTemp, 0, pids, 0, i);
     }
 
-    public static void parsePIDs(){
-        for(int pid: pids){
-            addProc(pid);
-        }
-    }
-
-    public static void addProc(int pid){
+    //TODO: Robustify - check best practices for handling BufferedReaders
+    private static String getName(int pid){
         BufferedReader reader = null;
         String name;
         try {
-            reader = new BufferedReader(new FileReader(String.format("/proc/%d/cmdline", pid)));
+            reader = new BufferedReader(new FileReader(String.format(Locale.US, CMDLINE, pid)));
             name = reader.readLine();   //TODO: Robustify! See getNames
         } catch (IOException e) {
-            Log.e("ProcessLibrary", "Read error extracting name for process " + pid + ": " + e.toString());
-            return;
+            Log.e(DEBUG, "Read error extracting name for process " + pid + ": " + e.toString());
+            return null;
         }
-        long utime;
-        long stime;
         try {
-            reader = new BufferedReader(new FileReader(String.format("/proc/%d/stat", pid)));
-            String line = reader.readLine(); //TODO: As above
-            String[] fields = line.split("\\s+");
-            utime = Integer.parseInt(fields[13]);
-            stime = Integer.parseInt(fields[14]);
-        } catch (IOException e) {
-            Log.e("ProcessLibrary", "Read error extracting stat for process " + pid + ": " + e.toString());
-            return;
+            reader.close();
+        } catch (IOException ignored) {
         }
-        processes.add(new Process(pid, stime + utime, name));
+        return name;
     }
 
-//    public static void getNames(){
-//        int length = pids.length;
-//        String[] names = new String[length];
-//        BufferedReader reader = null;
-//        for(int i = 0; i < length; ++i) {
-//            try {
-//                reader = new BufferedReader(new FileReader(String.format("/proc/%d/cmdline", pids[i])));
-//                for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-//                    names[i] = line;
-//                }
-//            } catch (IOException e) {
-//                Log.e("ProcessLibrary", "Read error extracting name for process " + pids[i] + ": " + e.toString());
-//            }
-//        }
-//        if(reader != null) {
-//            try {
-//                reader.close();
-//            } catch (IOException ignored) {
-//            }
-//        }
-//    }
-//
-//    //TODO: This can certainly be optimised.
-//    public static void extractTime(int[] pids){
-//        int length = pids.length;
-//        utime = new int[length];
-//        stime = new int[length];
-//        BufferedReader reader = null;
-//        for(int i = 0; i < length; ++i) {
-//            try {
-//                reader = new BufferedReader(new FileReader(String.format("/proc/%d/stat", pids[i])));
-//                for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-//                    String[] fields = line.split("\\s+");
-//                    utime[i] = Integer.parseInt(fields[13]);
-//                    stime[i] = Integer.parseInt(fields[14]);
-//                }
-//            } catch (IOException e) {
-//                Log.e("ProcessLibrary", "Read error extracting name for process " + pids[i] + ": " + e.toString());
-//            }
-//        }
-//        if(reader != null) {
-//            try {
-//                reader.close();
-//            } catch (IOException ignored) {
-//            }
-//        }
-//    }
+    private static long getTime(int pid){
+        BufferedReader reader = null;
+        String line;
+        try {
+            reader = new BufferedReader(new FileReader(String.format(Locale.US, STAT, pid)));
+            line = reader.readLine(); //TODO: As above
+        } catch (IOException e) {
+            Log.e(DEBUG, "Read error extracting stat for process " + pid + ": " + e.toString());
+            return -1;
+        }
+        try {
+            reader.close();
+        } catch (IOException ignored) {
+        }
+
+        String[] fields = line.split(" "); //TODO: Test that this works consistently, vs regex for multiple spaces
+        int utime = Integer.parseInt(fields[13]);
+        int stime = Integer.parseInt(fields[14]);
+
+        return utime + stime;
+    }
 }

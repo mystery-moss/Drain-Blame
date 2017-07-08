@@ -2,20 +2,21 @@ package moss.mystery.energymonitor.processes;
 
 import android.support.annotation.NonNull;
 
-public class Process implements Comparable<Process>{
-    public int pid;
-    public long time;
-    public String name;
+public class Process{
+    public long startTime;
+    public long elapsedTime;
 
-    public Process(int pid, long time, String name){
-        this.pid = pid;
-        this.time = time;
-        this.name = name;
+    public Process(long startTime){
+        this.startTime = startTime;
+        this.elapsedTime = 0;
     }
 
-    @Override
-    public int compareTo(@NonNull Process i){
-        return this.pid - i.pid;
+    //Account for potential resets of utime and stime
+    public void updateTime(long time){
+        long diff = time - startTime;
+        if(diff > 0){
+            elapsedTime += diff;
+        }
+        startTime = time;
     }
-
 }
