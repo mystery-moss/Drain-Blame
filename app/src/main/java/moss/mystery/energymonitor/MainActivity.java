@@ -28,6 +28,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        TextView box = (TextView) findViewById(R.id.tempText);
+        box.setText("Fresh start = " + MonitorLibrary.freshStart + ", inst = " + MonitorLibrary.inst);
+        if(MonitorLibrary.freshStart){
+            MonitorLibrary.freshStart = false;
+        }
+        MonitorLibrary.inst++;
+
+
         //Register screen monitor - when declared in manifest, never runs
         screenMonitor = new ScreenMonitor();
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
