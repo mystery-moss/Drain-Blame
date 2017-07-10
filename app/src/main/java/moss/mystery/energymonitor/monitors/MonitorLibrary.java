@@ -13,6 +13,10 @@ import android.view.Display;
 import java.util.ArrayList;
 
 public class MonitorLibrary {
+    //Test
+    public static boolean freshStart = true;
+    public static int inst = 0;
+
     //Battery
     private static int currentBatteryLevel = -1;
     private static boolean charging = false;

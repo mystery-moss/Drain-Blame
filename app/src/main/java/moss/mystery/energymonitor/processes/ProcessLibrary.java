@@ -61,9 +61,9 @@ public class ProcessLibrary {
                 //If process not already recorded, add it to store, else update elapsed time
                 Process proc = processes.get(name);
                 if(proc == null){
-                    processes.put(name, new Process(time));
+                    processes.put(name, new Process(time, pid));
                 } else {
-                    proc.updateTime(time);
+                    proc.updateTime(time, pid);
                 }
             }
         }
