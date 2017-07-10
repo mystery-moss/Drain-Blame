@@ -13,9 +13,8 @@ import android.view.Display;
 import java.util.ArrayList;
 
 public class MonitorLibrary {
-    //Test
-    public static boolean freshStart = true;
-    public static int inst = 0;
+    //Status
+    public static boolean running = false;
 
     //Battery
     private static int currentBatteryLevel = -1;
@@ -36,6 +35,7 @@ public class MonitorLibrary {
     public static void startup(Context context){
         Log.d("MonitorLibrary", "STARTING UP");
         firstInterval = true;
+        running = true;
 
         //Get screen state
         //Handles multiple displays, though in practice this situation is undefined

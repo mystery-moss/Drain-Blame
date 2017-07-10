@@ -8,7 +8,7 @@ import android.util.Log;
 
 public class BatteryMonitor extends BroadcastReceiver {
     private boolean isCharging = false; //TODO: Would this be better static? Maybe move to Library
-    private boolean startup = true;
+    private boolean running = false;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -19,11 +19,11 @@ public class BatteryMonitor extends BroadcastReceiver {
         int previousLevel = MonitorLibrary.getCurrentBatteryLevel();
 
         //Has the service just been started?
-        if(startup){
+        if(!running){
             MonitorLibrary.startup(context);
             MonitorLibrary.setBatteryLevel(level);
             isCharging = isChargingNew;
-            startup = false;
+            running = true;
             Log.d("Battery Monitor", "Service started, level = " + level);
             return;
         }

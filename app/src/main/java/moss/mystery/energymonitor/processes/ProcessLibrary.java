@@ -27,7 +27,7 @@ public class ProcessLibrary {
         return true;
     }
 
-    //TODO: This resets all process info, so don't forget to remove it later!
+    //TODO: This resets all process info, so don't forget to fix it later!
     public static boolean startup(){
         processes = new HashMap<String, Process>();
 

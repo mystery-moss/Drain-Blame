@@ -19,7 +19,6 @@ import moss.mystery.energymonitor.processes.Process;
 import moss.mystery.energymonitor.processes.ProcessLibrary;
 
 public class MainActivity extends AppCompatActivity {
-    private static final int MY_PERMISSIONS_REQUEST_PACKAGE_USAGE_STATS = 1;
     private BroadcastReceiver batteryMonitor;
     private BroadcastReceiver screenMonitor;
 
@@ -28,28 +27,27 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        TextView box = (TextView) findViewById(R.id.tempText);
-        box.setText("Fresh start = " + MonitorLibrary.freshStart + ", inst = " + MonitorLibrary.inst);
-        if(MonitorLibrary.freshStart){
-            MonitorLibrary.freshStart = false;
+        //Begin monitoring
+        if(!MonitorLibrary.running){
+            //Ensure that we have the ability to read process info
+            if(!ProcessLibrary.startup()){
+                //TODO: Update when UI is finalised
+                TextView box = (TextView) findViewById(R.id.tempText);
+                box.setText("ERROR: Cannot read process state [Root privileges required in Android 7+]");
+                return;
+            }
+            //Register screen monitor - when declared in manifest, never run
+            screenMonitor = new ScreenMonitor();
+            IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+            filter.addAction(Intent.ACTION_SCREEN_OFF);
+            getApplicationContext().registerReceiver(screenMonitor, new IntentFilter(filter));
+
+            //Register battery level change receiver
+            //TODO: Should I split it off to another thread?
+            //TODO: Should I explicitly start monitoring intervals here too?
+            batteryMonitor = new BatteryMonitor();
+            getApplicationContext().registerReceiver(batteryMonitor, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         }
-        MonitorLibrary.inst++;
-
-
-        //Register screen monitor - when declared in manifest, never runs
-        screenMonitor = new ScreenMonitor();
-        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-        filter.addAction(Intent.ACTION_SCREEN_OFF);
-        getApplicationContext().registerReceiver(screenMonitor, new IntentFilter(filter));
-
-        //Register battery level change receiver
-        //TODO: Which thread does this run in? Should I split it off to another one?
-        //TODO: Should I explicitly start monitoring intervals here too?
-        batteryMonitor = new BatteryMonitor();
-        getApplicationContext().registerReceiver(batteryMonitor, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-
-        ProcessLibrary.startup(); //Minimal
-
     }
 
     public void listIntervals(View view){
@@ -79,12 +77,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startInterval(View view){
-        MonitorLibrary.newInterval(getApplicationContext(), 90, System.currentTimeMillis());
+        MonitorLibrary.newInterval(getApplicationContext(), 71, System.currentTimeMillis());
     }
-
-    //private static int[] pids;
-    //private static int[] ustart;
-    //private static int[] sstart;
 
     public void listProcs(View view){
         TextView box = (TextView) findViewById(R.id.tempText);
@@ -107,13 +101,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        try {
-            unregisterReceiver(batteryMonitor);
-            unregisterReceiver(screenMonitor);
-        }
-        catch(Exception e){
-            Log.d("MainActivity", "Receivers not registered:\n" + e);
-        }
+        //This is just when the activity quits - these should only be invoked when whole program quits
+//        try {
+//            unregisterReceiver(batteryMonitor);
+//            unregisterReceiver(screenMonitor);
+//        }
+//        catch(Exception e){
+//            Log.d("MainActivity", "Receivers not registered:\n" + e);
+//        }
         Log.d("MainActivity", "Exited");
     }
 }
