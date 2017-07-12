@@ -7,8 +7,8 @@ import android.os.BatteryManager;
 import android.util.Log;
 
 public class BatteryMonitor extends BroadcastReceiver {
-    private boolean isCharging = false; //TODO: Would this be better static? Maybe move to Library
-    private boolean running = false;
+    private static boolean isCharging = false; //TODO: Maybe move to Library?
+    private static boolean running = false;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -46,6 +46,8 @@ public class BatteryMonitor extends BroadcastReceiver {
         //Either charger has just been disconnected, or battery level has dropped
         //TODO: Go over logic here, double check - pretty sure I'm missing possibilities
         //At the very least I doubt it's robust unless all phones are consistent in this
+        //Ah, on startup can reach situation where isCharging = true, isChargingNew = false,
+        //but MonitorLibrary.isCharging() = false
         else{
             Log.d("Battery Monitor", "Entering else! Old = " + previousLevel + ", New = " + level);
             //If was previously charging, this update must be disconnected charger
@@ -62,6 +64,11 @@ public class BatteryMonitor extends BroadcastReceiver {
                     return;
                 }
             }
+            //TODO: Sanity check this bit, or maybe remove local 'isCharging'?
+            if(MonitorLibrary.isCharging() != isCharging){
+                isCharging = MonitorLibrary.isCharging();
+            }
+
             //Begin a new battery interval
             //TODO: If this is long running, maybe split it out into a separate thread???
             //As long as timestamps are accurate - could maybe get screen on time in this thread
