@@ -42,8 +42,12 @@
         <receiver
             android:name=".monitors.AlarmReceiver"
             android:enabled="true"
-            android:exported="false">
-        </receiver>
+            android:exported="false"></receiver>
+
+        <service
+            android:name=".MainService"
+            android:enabled="true"
+            android:exported="false"></service>
     </application>
 
 </manifest>

@@ -36,6 +36,11 @@ public class MainActivity extends AppCompatActivity {
                 box.setText("ERROR: Cannot read process state [Root privileges required in Android 7+]");
                 return;
             }
+
+            //Start service
+            Intent intent = new Intent(this, MainService.class);
+            startService(intent);
+
             //Register screen monitor - when declared in manifest, never run
             screenMonitor = new ScreenMonitor();
             IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
