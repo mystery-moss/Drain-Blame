@@ -6,13 +6,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.hardware.display.DisplayManager;
 import android.os.Build;
+import android.os.Handler;
 import android.os.PowerManager;
 import android.util.Log;
 import android.view.Display;
 
 import java.util.ArrayList;
 
+import moss.mystery.energymonitor.processes.ProcessLibrary;
+
 public class MonitorLibrary {
+    private static final String DEBUG = "Monitor Library";
     //Status
     public static boolean running = false;
 
@@ -30,6 +34,8 @@ public class MonitorLibrary {
     private static long intervalStart;
     private static ArrayList<Interval> intervals = new ArrayList<Interval>();
     private static AlarmManager alarm;
+    private static Handler handler = new Handler();
+    private static boolean scheduled = false;
 
     //Control=======================================================================================
     public static void startup(Context context){
@@ -105,6 +111,7 @@ public class MonitorLibrary {
     //Interval tracking=============================================================================
     public static void stopRecording(){
         firstInterval = true;
+        cancelAlarm();
     }
     public static void clearIntervals(){
         intervals.clear();
@@ -115,47 +122,73 @@ public class MonitorLibrary {
     public static void newInterval(Context context, int level, long timestamp){
         //Don't record details of previous interval for the first interval
         if(!firstInterval){
-            intervals.add(new Interval(currentBatteryLevel, timestamp - intervalStart, getScreenOnTime()));
+            intervals.add(new Interval(currentBatteryLevel, timestamp - intervalStart, getScreenOnTime(), ProcessLibrary.getActiveProcs()));
         }
         else{
             firstInterval = false;
+            ProcessLibrary.resetActive();
         }
 
         //Periodically poll for running processes
+        //TODO: Factor this out, account for varying poll times
         Log.d("MonitorLibrary", "Setting up the alarm");
-        //Increase context capabilities?
-        context = context.getApplicationContext();
 
-        Intent intent = new Intent(context, AlarmReceiver.class);
-        final PendingIntent pIntent = PendingIntent.getBroadcast(context, AlarmReceiver.REQUEST_CODE,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        long firstMillis = System.currentTimeMillis();
-
-        //Halt any existing alarms
-        if (alarm != null){
-            alarm.cancel (pIntent);
+        //TODO: Make this check nicer!
+        if(scheduled){
+            handler.removeCallbacks(poll_prelim);
         }
+        handler.post(poll_prelim);
+        scheduled = true;
 
-        alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        //Fire alarm immediately, then every thirty seconds
-        //TODO: Why does it only trigger every minute, not every 30 seconds?
-        //And even that is pretty inconsistent...
-        alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, firstMillis, 30 * 1000, pIntent);
+
+//        //Increase context capabilities?
+//        context = context.getApplicationContext();
+//
+//        Intent intent = new Intent(context, AlarmReceiver.class);
+//        final PendingIntent pIntent = PendingIntent.getBroadcast(context, AlarmReceiver.REQUEST_CODE,
+//                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//        long firstMillis = System.currentTimeMillis();
+//
+//        //Halt any existing alarms
+//        if (alarm != null){
+//            alarm.cancel (pIntent);
+//        }
+//
+//        alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+//        //Fire alarm immediately, then every thirty seconds
+//        //TODO: Why does it only trigger every minute, not every 30 seconds?
+//        //And even that is pretty inconsistent...
+//        alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, firstMillis, 30 * 1000, pIntent);
 
         resetScreenCounter();
         intervalStart = timestamp;
         currentBatteryLevel = level;
     }
 
-    //TODO: Tidy this up, work out how context actually works
-    public static void cancelAlarm(Context context){
-        Intent intent = new Intent(context, AlarmReceiver.class);
-        final PendingIntent pIntent = PendingIntent.getBroadcast(context, AlarmReceiver.REQUEST_CODE,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        long firstMillis = System.currentTimeMillis();
+    //TODO: Make this nicer - its an object, not a method
+    private static Runnable poll_prelim = new Runnable(){
+        @Override
+        public void run(){
+            //TODO: Maybe pass this to something else via intent? Unclear, research effects of this
+            Log.d(DEBUG, "Polling processes");
+            ProcessLibrary.parseProcs(100);
 
-        if (alarm != null){
-            alarm.cancel (pIntent);
+            handler.postDelayed(poll_prelim, 30000);
         }
+    };
+
+    //TODO: Tidy this up, work out how context actually works
+    public static void cancelAlarm(){
+        if(scheduled){
+            handler.removeCallbacks(poll_prelim);
+        }
+//        Intent intent = new Intent(context, AlarmReceiver.class);
+//        final PendingIntent pIntent = PendingIntent.getBroadcast(context, AlarmReceiver.REQUEST_CODE,
+//                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//        long firstMillis = System.currentTimeMillis();
+//
+//        if (alarm != null){
+//            alarm.cancel (pIntent);
+//        }
     }
 }

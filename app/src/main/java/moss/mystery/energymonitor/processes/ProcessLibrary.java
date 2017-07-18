@@ -6,10 +6,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.TreeSet;
 
 /**
  * Adapted from https://github.com/jaredrummler/AndroidProcesses
@@ -36,7 +36,7 @@ public class ProcessLibrary {
 
     //TODO: Look into optimisations here, as this will run regularly and takes the longest
     //Main optimisation would be to store list of forbidden files, avoid trying to access them each call
-    public static void parseProcs(){
+    public static void parseProcs(long threshold){
         //Parse /proc directory
         File[] files = new File(PROC).listFiles();
         for (File file : files) {
@@ -52,20 +52,51 @@ public class ProcessLibrary {
                 if(name == null){
                     continue;
                 }
-                //Get process time values
-                long time = getTime(pid);
-                if(time == -1){
+                //Get process CPU tick values
+                long ticks = getTicks(pid);
+                if(ticks == -1){
                     continue;
                 }
 
                 //If process not already recorded, add it to store, else update elapsed time
                 Process proc = processes.get(name);
                 if(proc == null){
-                    processes.put(name, new Process(time, pid));
+                    processes.put(name, new Process(ticks, pid));
                 } else {
-                    proc.updateTime(time, pid);
+                    long totalTicks = proc.updateTicks(ticks, pid);
+                    //Mark process as active past threshold CPU ticks
+                    if(totalTicks > threshold){
+                        proc.active = true;
+                    }
                 }
             }
+        }
+    }
+
+    //Get list of processes active in this interval
+    public static String[] getActiveProcs(){
+        List<String> procs = new ArrayList<String>();
+
+        for(String key : processes.keySet()){
+            Process proc = processes.get(key);
+            if(proc.active){
+                procs.add(key);
+                proc.active = false;
+            }
+        }
+
+        return procs.toArray(new String[0]);
+    }
+
+    //Reset list of active processes
+    public static void resetActive(){
+        //TODO: More robust dealing with this
+        if(processes == null){
+            return;
+        }
+        for(String key : processes.keySet()){
+            Process proc = processes.get(key);
+            proc.active = false;
         }
     }
 
@@ -87,7 +118,7 @@ public class ProcessLibrary {
         return name;
     }
 
-    private static long getTime(int pid){
+    private static long getTicks(int pid){
         BufferedReader reader = null;
         String line;
         try {

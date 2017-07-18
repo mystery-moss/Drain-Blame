@@ -5,10 +5,12 @@ public class Interval {
     public int level;
     public long length;
     public long screenOnTime;
+    public String[] activeProcs;
 
-    public Interval(int level, long length, long screenOnTime){
+    public Interval(int level, long length, long screenOnTime, String[] activeProcs){
         this.level = level;
         this.length = length;
         this.screenOnTime = screenOnTime;
+        this.activeProcs = activeProcs;
     }
 }

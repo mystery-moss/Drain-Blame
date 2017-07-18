@@ -1,28 +1,39 @@
 package moss.mystery.energymonitor.processes;
 
 public class Process{
-    public long startTime;
-    public long elapsedTime;
+    public long prevTicks;
+    public long currTicks;
     private int pid;
 
-    public Process(long _startTime, int _pid){
-        startTime = _startTime;
-        elapsedTime = 0;
+    public boolean active;
+
+
+    public Process(long tick, int _pid){
+        prevTicks = tick;
+        currTicks = tick;
         pid = _pid;
+        active = false;
     }
 
-    //Account for process restarts
-    public void updateTime(long time, int _pid){
+    public long updateTicks(long ticks, int _pid){
+        //Account for process restarts
         if(pid != _pid){
             pid = _pid;
-            startTime = time;
+            prevTicks = ticks;
+            currTicks = ticks;
+            return 0;
         } else {
-            long diff = time - startTime;
-            //Also account for possibility of process restarting with same PID - negative time delta
-            if (diff > 0) {
-                elapsedTime += diff;
+            //Also account for possibility of process restarting with same PID - negative tick delta
+            long diff = ticks - currTicks;
+            if (diff < 0) {
+                prevTicks = ticks;
+                currTicks = ticks;
+                return 0;
+            } else {
+                prevTicks = currTicks;
+                currTicks = ticks;
+                return diff;
             }
-            startTime = time;
         }
     }
 }

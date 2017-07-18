@@ -39,10 +39,6 @@
                 <action android:name="android.intent.action.SCREEN_OFF" />
             </intent-filter>
         </receiver>
-        <receiver
-            android:name=".monitors.AlarmReceiver"
-            android:enabled="true"
-            android:exported="false"></receiver>
 
         <service
             android:name=".MainService"

@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.BatteryManager;
 import android.util.Log;
 
+import moss.mystery.energymonitor.processes.ProcessLibrary;
+
 public class BatteryMonitor extends BroadcastReceiver {
     private static boolean isCharging = false; //TODO: Maybe move to Library?
     private static boolean running = false;
@@ -21,6 +23,8 @@ public class BatteryMonitor extends BroadcastReceiver {
         //Has the service just been started?
         if(!running){
             MonitorLibrary.startup(context);
+            //TODO: Currently this responds with whether processes can be checked - fix to be useful!
+            ProcessLibrary.startup();
             MonitorLibrary.setBatteryLevel(level);
             isCharging = isChargingNew;
             running = true;
