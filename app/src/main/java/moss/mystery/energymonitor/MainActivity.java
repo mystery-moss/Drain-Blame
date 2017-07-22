@@ -8,16 +8,18 @@ import android.view.View;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
+import moss.mystery.energymonitor.classifier.ClassifierLibrary;
 import moss.mystery.energymonitor.monitors.Interval;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
-import moss.mystery.energymonitor.processes.Process;
 import moss.mystery.energymonitor.processes.ProcessLibrary;
 
 public class MainActivity extends AppCompatActivity {
-
+    private static final String DEBUG = "MainActivity";
 
     @Override
+    //If this is the first time the app is launched, perform checks and setup
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -29,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d("MAIN", "STARTING PROCESS-LIBRARY!");
             if(!ProcessLibrary.startup()){
                 //TODO: Update when UI is finalised
-                TextView box = (TextView) findViewById(R.id.tempText);
+                TextView box = (TextView) findViewById(R.id.textBox);
                 box.setText("ERROR: Cannot read process state [Root privileges required in Android 7+]");
                 return;
             }
@@ -40,8 +42,22 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        Log.d("MainActivity", "Exited");
+    }
+
+    //Launch 'options' activity
+    public void options(View view){
+        //TODO: Is the intent actually required at all? Not passing anything...
+        Intent intent = new Intent(this, OptionsActivity.class);
+        startActivity(intent);
+    }
+
+    //========================DEBUGGING=METHODS==========================
     public void listIntervals(View view){
-        TextView box = (TextView) findViewById(R.id.tempText);
+        TextView box = (TextView) findViewById(R.id.textBox);
 
         StringBuilder info = new StringBuilder();
         info.append("CURRENT TIMESTAMP: ").append(System.currentTimeMillis()).append("\nINTERVALS:\n");
@@ -55,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         //TODO: For ArrayList only, hand-written counted loop is more efficient than iterator
         for(Interval interval : intervals){
             info.append("+++++++ ").append(interval.level).append(" - ").append(interval.level - 1);
-            info.append(": ").append(interval.length).append(" - Screen time = ").append(interval.screenOnTime).append('\n');
+            info.append(": ").append(interval.length / 1000).append(" - Screen time = ").append(interval.screenOnTime / 1000).append('\n');
             for(String proc : interval.activeProcs){
                 info.append(proc).append(", ");
             }
@@ -72,6 +88,43 @@ public class MainActivity extends AppCompatActivity {
 
     public void startInterval(View view){
         MonitorLibrary.newInterval(getApplicationContext(), 71, System.currentTimeMillis());
+    }
+
+    public void parseIntervals(View view){
+        TextView box = (TextView) findViewById(R.id.textBox);
+
+        ArrayList<Interval> intervals = MonitorLibrary.getIntervals();
+        if(intervals == null){
+            box.setText("No intervals");
+            return;
+        }
+
+        //First pass: Extract list of processes and add lengths of intervals they are active in
+        HashMap<String, ArrayList<Integer>> processes = new HashMap<String, ArrayList<Integer>>();
+        for(Interval interval : intervals){
+            for(String proc : interval.activeProcs){
+                ArrayList<Integer> procIntervals = processes.get(proc);
+                if(procIntervals == null){
+                    processes.put(proc, new ArrayList<Integer>());
+                    procIntervals = processes.get(proc);
+                }
+                procIntervals.add(ClassifierLibrary.classifyInterval(interval.length));
+            }
+        }
+
+        StringBuilder info = new StringBuilder("PROCESSES:\n");
+
+        //Assign basic levels to processes
+        for(String key : processes.keySet()){
+            info.append(key).append(": ");
+            ArrayList<Integer> lengths = processes.get(key);
+            for(int length : lengths){
+                info.append(length).append(", ");
+            }
+            info.append('\n');
+        }
+
+        box.setText(info);
     }
 
 //    public void listProcs(View view){
@@ -91,10 +144,4 @@ public class MainActivity extends AppCompatActivity {
 //
 //        box.setText(procs);
 //    }
-
-    @Override
-    protected void onDestroy(){
-        super.onDestroy();
-        Log.d("MainActivity", "Exited");
-    }
 }

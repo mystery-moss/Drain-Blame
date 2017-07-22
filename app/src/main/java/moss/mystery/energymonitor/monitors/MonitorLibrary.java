@@ -119,6 +119,9 @@ public class MonitorLibrary {
     public static ArrayList<Interval> getIntervals(){
         return intervals;
     }
+    public static void populateInterval(Interval i){
+        intervals.add(i);
+    }
     public static void newInterval(Context context, int level, long timestamp){
         //Don't record details of previous interval for the first interval
         if(!firstInterval){
