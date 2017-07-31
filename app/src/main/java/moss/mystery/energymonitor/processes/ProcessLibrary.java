@@ -74,18 +74,20 @@ public class ProcessLibrary {
     }
 
     //Get list of processes active in this interval
-    public static String[] getActiveProcs(){
-        List<String> procs = new ArrayList<String>();
+    public static ProcessInfo[] getActiveProcs(){
+        List<ProcessInfo> procs = new ArrayList<ProcessInfo>();
 
         for(String key : processes.keySet()){
             Process proc = processes.get(key);
             if(proc.active){
-                procs.add(key);
+                procs.add(new ProcessInfo(key, proc.intTicks));
+                //Reset process info for next interval
                 proc.active = false;
+                proc.intTicks = 0;
             }
         }
 
-        return procs.toArray(new String[0]);
+        return procs.toArray(new ProcessInfo[0]);
     }
 
     //Reset list of active processes

@@ -13,6 +13,7 @@ import java.util.HashMap;
 import moss.mystery.energymonitor.classifier.ClassifierLibrary;
 import moss.mystery.energymonitor.monitors.Interval;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
+import moss.mystery.energymonitor.processes.ProcessInfo;
 import moss.mystery.energymonitor.processes.ProcessLibrary;
 
 public class MainActivity extends AppCompatActivity {
@@ -72,8 +73,8 @@ public class MainActivity extends AppCompatActivity {
         for(Interval interval : intervals){
             info.append("+++++++ ").append(interval.level).append(" - ").append(interval.level - 1);
             info.append(": ").append(interval.length / 1000).append(" - Screen time = ").append(interval.screenOnTime / 1000).append('\n');
-            for(String proc : interval.activeProcs){
-                info.append(proc).append(", ");
+            for(ProcessInfo proc : interval.activeProcs){
+                info.append(proc.name).append(", ");
             }
             info.append('\n');
         }
@@ -101,12 +102,13 @@ public class MainActivity extends AppCompatActivity {
 
         //First pass: Extract list of processes and add lengths of intervals they are active in
         HashMap<String, ArrayList<Integer>> processes = new HashMap<String, ArrayList<Integer>>();
+
         for(Interval interval : intervals){
-            for(String proc : interval.activeProcs){
-                ArrayList<Integer> procIntervals = processes.get(proc);
+            for(ProcessInfo proc : interval.activeProcs){
+                ArrayList<Integer> procIntervals = processes.get(proc.name);
                 if(procIntervals == null){
-                    processes.put(proc, new ArrayList<Integer>());
-                    procIntervals = processes.get(proc);
+                    processes.put(proc.name, new ArrayList<Integer>());
+                    procIntervals = processes.get(proc.name);
                 }
                 procIntervals.add(ClassifierLibrary.classifyInterval(interval.length));
             }

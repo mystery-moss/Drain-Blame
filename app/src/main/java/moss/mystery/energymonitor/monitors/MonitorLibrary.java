@@ -174,7 +174,7 @@ public class MonitorLibrary {
         public void run(){
             //TODO: Maybe pass this to something else via intent? Unclear, research effects of this
             Log.d(DEBUG, "Polling processes");
-            ProcessLibrary.parseProcs(100);
+            ProcessLibrary.parseProcs(0);
 
             handler.postDelayed(poll_prelim, 30000);
         }

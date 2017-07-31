@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import moss.mystery.energymonitor.monitors.Interval;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
 import moss.mystery.energymonitor.processes.Process;
+import moss.mystery.energymonitor.processes.ProcessInfo;
 
 public class FileParsing {
     //TODO: Look into making error catching here more robust? E.g. have closing files in 'finally' block rather than within the try?
@@ -99,8 +100,8 @@ public class FileParsing {
 
             data.append(x.level).append(' ').append(x.length).append(' ').append(x.screenOnTime);
 
-            for (String p : x.activeProcs) {
-                data.append(' ').append(p);
+            for (ProcessInfo p : x.activeProcs) {
+                data.append(' ').append(p.name).append(' ').append(p.ticks);
             }
             data.append('\n');
         }
@@ -109,6 +110,7 @@ public class FileParsing {
     }
 
     //Read from string to 'Interval' store
+    //Note that this adds to existing intervals, so don't repeatedly re-read same file
     private static void parseFromString(String string){
         String[] data = string.split(" ");
 
@@ -123,11 +125,13 @@ public class FileParsing {
         long length = Long.parseLong(data[1]);
         long screenOnTime = Long.parseLong(data[2]);
 
-        int numProcs = data.length - 3;
-        String[] activeProcs = new String[numProcs];
+        int numProcs = (data.length - 3) / 2;
+        ProcessInfo[] activeProcs = new ProcessInfo[numProcs];
 
         if(numProcs > 0){
-            System.arraycopy(data, 3, activeProcs, 0, numProcs);
+            for(int i = 0; i < numProcs; i++){
+                activeProcs[i] = new ProcessInfo(data[i + 3], Long.parseLong(data[i + 4]));
+            }
         }
 
         MonitorLibrary.populateInterval(new Interval(level, length, screenOnTime, activeProcs));
