@@ -1,9 +1,7 @@
 package moss.mystery.energymonitor.monitors;
 
 import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.hardware.display.DisplayManager;
 import android.os.Build;
 import android.os.Handler;
@@ -125,11 +123,11 @@ public class MonitorLibrary {
     public static void newInterval(Context context, int level, long timestamp){
         //Don't record details of previous interval for the first interval
         if(!firstInterval){
-            intervals.add(new Interval(currentBatteryLevel, timestamp - intervalStart, getScreenOnTime(), ProcessLibrary.getActiveProcs()));
+            intervals.add(new Interval(currentBatteryLevel, timestamp - intervalStart, getScreenOnTime(), ProcessLibrary.startNewSample()));
         }
         else{
             firstInterval = false;
-            ProcessLibrary.resetActive();
+            ProcessLibrary.startNewSample();
         }
 
         //Periodically poll for running processes

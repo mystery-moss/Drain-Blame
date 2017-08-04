@@ -24,7 +24,7 @@ public class BatteryMonitor extends BroadcastReceiver {
         if(!running){
             MonitorLibrary.startup(context);
             //TODO: Currently this responds with whether processes can be checked - fix to be useful!
-            ProcessLibrary.startup();
+            ProcessLibrary.reset();
             MonitorLibrary.setBatteryLevel(level);
             isCharging = isChargingNew;
             running = true;
@@ -50,12 +50,12 @@ public class BatteryMonitor extends BroadcastReceiver {
         //Either charger has just been disconnected, or battery level has dropped
         //TODO: Go over logic here, double check - pretty sure I'm missing possibilities
         //At the very least I doubt it's robust unless all phones are consistent in this
-        //Ah, on startup can reach situation where isCharging = true, isChargingNew = false,
+        //Ah, on reset can reach situation where isCharging = true, isChargingNew = false,
         //but MonitorLibrary.isCharging() = false
         else{
             Log.d("Battery Monitor", "Entering else! Old = " + previousLevel + ", New = " + level);
             //If was previously charging, this update must be disconnected charger
-            //TODO: Handle case where battery level changes and charger disconnected at same time
+            //TODO: Handle case where battery level changes and charger disconnected at same ticks
             if(MonitorLibrary.isCharging()){
                 MonitorLibrary.chargerDisconnected();
                 isCharging = false;
@@ -75,7 +75,7 @@ public class BatteryMonitor extends BroadcastReceiver {
 
             //Begin a new battery interval
             //TODO: If this is long running, maybe split it out into a separate thread???
-            //As long as timestamps are accurate - could maybe get screen on time in this thread
+            //As long as timestamps are accurate - could maybe get screen on ticks in this thread
             MonitorLibrary.newInterval(context, level, System.currentTimeMillis());
             Log.d("Battery Monitor", "Beginning new interval - level = " + level);
         }

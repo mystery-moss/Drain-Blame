@@ -1,42 +1,43 @@
 package moss.mystery.energymonitor.processes;
 
 public class Process{
-    public long prevTicks;  //CPU ticks when previously sampled
-    public long currTicks;  //CPU ticks when last sampled
+    public long intTicks;   //CPU ticks in the current sample interval
+    private long prevTicks; //CPU ticks when last sampled
+    private long startTime; //starttime when last observed
     public boolean active;  //Was process active in last sample interval
-    public long intTicks;   //CPU ticks in current measurement interval
-    private int pid;
 
-    public Process(long tick, int _pid){
-        prevTicks = tick;
-        currTicks = tick;
-        pid = _pid;
-        active = false;
-        intTicks = tick;
+    public Process(ProcessTime time, boolean _active){
+        prevTicks = time.ticks;
+        intTicks = time.ticks;
+        startTime = time.start;
+        active = _active;
     }
 
-    public long updateTicks(long ticks, int _pid){
-        //Account for process restarts
-        if(pid != _pid){
-            pid = _pid;
-            prevTicks = ticks;
-            currTicks = ticks;
-            intTicks = ticks;
-            return 0;
+    //If this is the very first interval but the process was already running, we can't attribute the
+    //elapsed ticks of this process to the current interval - so set to 0 instead.
+    //Also cannot determine whether process was active in this interval.
+    public Process(ProcessTime time){
+        prevTicks = time.ticks;
+        intTicks = 0;
+        startTime = time.start;
+        active = false;
+    }
+
+    public void updateTicks(ProcessTime time, long threshold){
+        //If process has restarted since last observed, all of its ticks occurred in this interval
+        if(startTime != time.start){
+            startTime = time.start;
+            prevTicks = time.ticks;
+            intTicks += time.ticks;
         } else {
-            //Also account for possibility of process restarting with same PID - negative tick delta
-            long diff = ticks - currTicks;
-            if (diff < 0) {
-                prevTicks = ticks;
-                currTicks = ticks;
-                intTicks = ticks;
-                return 0;
-            } else {
-                prevTicks = currTicks;
-                currTicks = ticks;
-                intTicks += diff;
-                return diff;
-            }
+            //Otherwise attribute all ticks since last observation to this interval
+            long newTicks = time.ticks - prevTicks;
+            intTicks += newTicks;
+            prevTicks = time.ticks;
+        }
+        //Mark as active if ticks are past threshold
+        if(intTicks >= threshold){
+            active = true;
         }
     }
 }

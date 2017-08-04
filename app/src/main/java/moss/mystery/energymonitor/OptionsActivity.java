@@ -57,7 +57,7 @@ public class OptionsActivity extends AppCompatActivity {
 
         for(Interval interval : intervals){
             data.append("+++++++ ").append(interval.level).append(" - ").append(interval.level - 1);
-            data.append(": ").append(interval.length / 1000).append(" - Screen time = ").append(interval.screenOnTime / 1000).append('\n');
+            data.append(": ").append(interval.length / 1000).append(" - Screen ticks = ").append(interval.screenOnTime / 1000).append('\n');
             for(ProcessInfo proc : interval.activeProcs){
                 data.append(proc.name).append(": ").append(proc.ticks).append(", ");
             }

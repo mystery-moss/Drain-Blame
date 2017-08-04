@@ -13,6 +13,7 @@ import java.util.HashMap;
 import moss.mystery.energymonitor.classifier.ClassifierLibrary;
 import moss.mystery.energymonitor.monitors.Interval;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
+import moss.mystery.energymonitor.processes.Process;
 import moss.mystery.energymonitor.processes.ProcessInfo;
 import moss.mystery.energymonitor.processes.ProcessLibrary;
 
@@ -20,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String DEBUG = "MainActivity";
 
     @Override
-    //If this is the first time the app is launched, perform checks and setup
+    //If this is the first ticks the app is launched, perform checks and setup
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -30,12 +31,14 @@ public class MainActivity extends AppCompatActivity {
         if(!MonitorLibrary.running){
             //Ensure that we have the ability to read process info
             Log.d("MAIN", "STARTING PROCESS-LIBRARY!");
-            if(!ProcessLibrary.startup()){
+            if(!ProcessLibrary.checkPermission()){
                 //TODO: Update when UI is finalised
                 TextView box = (TextView) findViewById(R.id.textBox);
                 box.setText("ERROR: Cannot read process state [Root privileges required in Android 7+]");
                 return;
             }
+
+            ProcessLibrary.reset();
 
             //Start service
             Intent intent = new Intent(this, MainService.class);
@@ -72,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         //TODO: For ArrayList only, hand-written counted loop is more efficient than iterator
         for(Interval interval : intervals){
             info.append("+++++++ ").append(interval.level).append(" - ").append(interval.level - 1);
-            info.append(": ").append(interval.length / 1000).append(" - Screen time = ").append(interval.screenOnTime / 1000).append('\n');
+            info.append(": ").append(interval.length / 1000).append(" - Screen ticks = ").append(interval.screenOnTime / 1000).append('\n');
             for(ProcessInfo proc : interval.activeProcs){
                 info.append(proc.name).append(", ");
             }
@@ -139,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
 //
 //        for(String key : ProcessLibrary.processes.keySet()){
 //            Process proc = ProcessLibrary.processes.get(key);
-//            procs.append(key).append(" - ").append(proc.currTicks).append('\n');
+//            procs.append(key).append(" - ").append(proc.prevTicks).append('\n');
 //        }
 //
 //        procs.append("\nTIME TAKEN = ").append(String.valueOf(System.currentTimeMillis() - start));

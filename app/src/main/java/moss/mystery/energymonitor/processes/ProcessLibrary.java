@@ -20,6 +20,8 @@ public class ProcessLibrary {
     private static final String CMDLINE = "/proc/%d/cmdline";
     private static final String STAT = "/proc/%d/stat";
     private static final String DEBUG = "ProcessLibrary";
+
+    private static boolean firstSample = true;          //Flag for handling special case
     public static HashMap<String, Process> processes;
 
     //TODO: This.
@@ -27,15 +29,19 @@ public class ProcessLibrary {
         return true;
     }
 
-    //TODO: This resets all process info, so don't forget to fix it later!
-    public static boolean startup(){
+    //Tidy up process list
+    public static void reset(){
         processes = new HashMap<String, Process>();
-
-        return checkPermission();
+        firstSample = true;
     }
 
     //TODO: Look into optimisations here, as this will run regularly and takes the longest
-    //Main optimisation would be to store list of forbidden files, avoid trying to access them each call
+    //Store a list of all files in directory, flag saying whether or not they are valid
+    //If a new file is not in the list, check to see if valid
+    //If a file in the list is no longer present in directory, remove from list
+    //Edge case: Unreadable dir gets replaced by readable one with same name within one sample
+    //Workaround: Refresh entire list every set number of samples, hope it wasn't important
+    //Would need benchmarks to justify making this change
     public static void parseProcs(long threshold){
         //Parse /proc directory
         File[] files = new File(PROC).listFiles();
@@ -53,92 +59,96 @@ public class ProcessLibrary {
                     continue;
                 }
                 //Get process CPU tick values
-                long ticks = getTicks(pid);
-                if(ticks == -1){
+                ProcessTime time = getTicks(pid);
+                if(time == null){
                     continue;
                 }
 
-                //If process not already recorded, add it to store, else update elapsed time
                 Process proc = processes.get(name);
+                //If process not already recorded, add it to store
                 if(proc == null){
-                    processes.put(name, new Process(ticks, pid));
-                } else {
-                    long totalTicks = proc.updateTicks(ticks, pid);
-                    //Mark process as active past threshold CPU ticks
-                    if(totalTicks > threshold){
-                        proc.active = true;
+                    if(firstSample){
+                        //Handle special case (cannot know when ticks occurred)
+                        processes.put(name, new Process(time));
+                    } else {
+                        //All ticks occurred in this interval, mark as active if past threshold
+                        processes.put(name, new Process(time, time.ticks >= threshold));
                     }
+                //Else update elapsed ticks
+                } else {
+                    proc.updateTicks(time, threshold);
                 }
             }
         }
+        firstSample = false;
     }
 
-    //Get list of processes active in this interval
-    public static ProcessInfo[] getActiveProcs(){
-        List<ProcessInfo> procs = new ArrayList<ProcessInfo>();
+    //Get list of procs active in this interval, reset interval ticks and active flags for all procs
+    public static ProcessInfo[] startNewSample(){
+        List<ProcessInfo> procList = new ArrayList<ProcessInfo>();
 
         for(String key : processes.keySet()){
             Process proc = processes.get(key);
             if(proc.active){
-                procs.add(new ProcessInfo(key, proc.intTicks));
-                //Reset process info for next interval
+                procList.add(new ProcessInfo(key, proc.intTicks));
                 proc.active = false;
-                proc.intTicks = 0;
             }
+            proc.intTicks = 0;
         }
 
-        return procs.toArray(new ProcessInfo[0]);
-    }
-
-    //Reset list of active processes
-    public static void resetActive(){
-        //TODO: More robust dealing with this
-        if(processes == null){
-            return;
-        }
-        for(String key : processes.keySet()){
-            Process proc = processes.get(key);
-            proc.active = false;
-        }
+        return procList.toArray(new ProcessInfo[0]);
     }
 
     //TODO: Robustify - check best practices for handling BufferedReaders
     private static String getName(int pid){
         BufferedReader reader = null;
-        String name;
+        String name = null;
         try {
             reader = new BufferedReader(new FileReader(String.format(Locale.US, CMDLINE, pid)));
             name = reader.readLine();   //TODO: Robustify! See getNames
         } catch (IOException e) {
-            Log.e(DEBUG, "Read error extracting name for process " + pid + ": " + e.toString());
+            Log.e(DEBUG, "Read error extracting name for process " + pid + ": " + e);
+            return null;
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException ignored) {}
+            }
+        }
+
+        if(name == null){
             return null;
         }
-        try {
-            reader.close();
-        } catch (IOException ignored) {
-        }
-        return name;
+        return name.trim();
     }
 
-    private static long getTicks(int pid){
+    private static ProcessTime getTicks(int pid){
         BufferedReader reader = null;
-        String line;
+        String line = null;
         try {
             reader = new BufferedReader(new FileReader(String.format(Locale.US, STAT, pid)));
             line = reader.readLine(); //TODO: As above
         } catch (IOException e) {
-            Log.e(DEBUG, "Read error extracting stat for process " + pid + ": " + e.toString());
-            return -1;
+            Log.e(DEBUG, "Read error extracting stat for process " + pid + ": " + e);
+            return null;
+        } finally {
+            if(reader != null){
+                try {
+                    reader.close();
+                } catch (IOException ignored){}
+            }
         }
-        try {
-            reader.close();
-        } catch (IOException ignored) {
+
+        if(line == null){
+            return null;
         }
 
         String[] fields = line.split(" "); //TODO: Test that this works consistently, vs regex for multiple spaces
-        int utime = Integer.parseInt(fields[13]);
-        int stime = Integer.parseInt(fields[14]);
+        long utime = Long.parseLong(fields[13]);
+        long stime = Long.parseLong(fields[14]);
+        long start = Long.parseLong(fields[21]);
 
-        return utime + stime;
+        return new ProcessTime(utime + stime, start);
     }
 }
