@@ -76,4 +76,14 @@
                 android:text="TextView" />
         </LinearLayout>
     </ScrollView>
+
+    <Button
+        android:id="@+id/toggleMonitoring"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:onClick="toggleMonitoring"
+        android:text="Toggle Monitoring"
+        app:layout_constraintBaseline_toBaselineOf="@+id/button"
+        app:layout_constraintLeft_toRightOf="@+id/button" />
 </android.support.constraint.ConstraintLayout>

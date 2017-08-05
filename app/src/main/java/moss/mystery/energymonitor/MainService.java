@@ -78,15 +78,18 @@ public class MainService extends Service {
 
     @Override
     public void onDestroy(){
-        MonitorLibrary.shutdown();
-
+        Context context = getApplicationContext();
         try {
-            unregisterReceiver(batteryMonitor);
-            unregisterReceiver(screenMonitor);
+            context.unregisterReceiver(batteryMonitor);
+            context.unregisterReceiver(screenMonitor);
         }
         catch(Exception e){
             Log.d("MainActivity", "Receivers not registered: " + e);
         }
+        
+        MonitorLibrary.shutdown();
+
+        Log.d(DEBUG, "Service shutting down");
     }
 
     @Override

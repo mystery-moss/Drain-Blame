@@ -19,6 +19,7 @@ import moss.mystery.energymonitor.processes.ProcessLibrary;
 
 public class MainActivity extends AppCompatActivity {
     private static final String DEBUG = "MainActivity";
+    public static boolean runService = true;
 
     @Override
     //Perform checks and setup
@@ -35,7 +36,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //Start service
-        startService(new Intent(this, MainService.class));
+        if(runService) {
+            startService(new Intent(this, MainService.class));
+        }
     }
 
     @Override

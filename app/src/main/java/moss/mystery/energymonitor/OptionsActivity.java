@@ -1,9 +1,11 @@
 package moss.mystery.energymonitor;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.StringBuilderPrinter;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -19,6 +21,13 @@ public class OptionsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_options);
+
+        Button toggle = (Button) findViewById(R.id.toggleMonitoring);
+        if(MainActivity.runService){
+            toggle.setText("Stop Monitoring");
+        } else {
+            toggle.setText("Start Monitoring");
+        }
     }
 
     public void writeFile(View view){
@@ -69,5 +78,19 @@ public class OptionsActivity extends AppCompatActivity {
 
     public void startInterval(View view){
         MonitorLibrary.setBatteryLevel(MonitorLibrary.getBatteryLevel() - 1);
+    }
+
+    public void toggleMonitoring(View view){
+        Button toggle = (Button) findViewById(R.id.toggleMonitoring);
+
+        if(MainActivity.runService){
+            MainActivity.runService = false;
+            stopService(new Intent(this, MainService.class));
+            toggle.setText("Start Monitoring");
+        } else {
+            MainActivity.runService = true;
+            startService(new Intent(this, MainService.class));
+            toggle.setText("Stop Monitoring");
+        }
     }
 }
