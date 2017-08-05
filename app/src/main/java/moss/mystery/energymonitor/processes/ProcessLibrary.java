@@ -22,7 +22,7 @@ public class ProcessLibrary {
     private static final String DEBUG = "ProcessLibrary";
 
     private static boolean firstSample = true;          //Flag for handling special case
-    public static HashMap<String, Process> processes;
+    private static HashMap<String, Process> processes;
 
     //TODO: This.
     public static boolean checkPermission(){
@@ -43,6 +43,7 @@ public class ProcessLibrary {
     //Workaround: Refresh entire list every set number of samples, hope it wasn't important
     //Would need benchmarks to justify making this change
     public static void parseProcs(long threshold){
+        Log.d(DEBUG, "Parsing processes");
         //Parse /proc directory
         File[] files = new File(PROC).listFiles();
         for (File file : files) {
@@ -97,6 +98,10 @@ public class ProcessLibrary {
         }
 
         return procList.toArray(new ProcessInfo[0]);
+    }
+
+    public static HashMap<String, Process> processList(){
+        return processes;
     }
 
     //TODO: Robustify - check best practices for handling BufferedReaders

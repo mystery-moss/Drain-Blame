@@ -21,42 +21,31 @@ public class MainActivity extends AppCompatActivity {
     private static final String DEBUG = "MainActivity";
 
     @Override
-    //If this is the first ticks the app is launched, perform checks and setup
+    //Perform checks and setup
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //Begin monitoring
-        //TODO: This is not the best place for this check
-        if(!MonitorLibrary.running){
-            //Ensure that we have the ability to read process info
-            Log.d("MAIN", "STARTING PROCESS-LIBRARY!");
-            if(!ProcessLibrary.checkPermission()){
-                //TODO: Update when UI is finalised
-                TextView box = (TextView) findViewById(R.id.textBox);
-                box.setText("ERROR: Cannot read process state [Root privileges required in Android 7+]");
-                return;
-            }
-
-            ProcessLibrary.reset();
-
-            //Start service
-            Intent intent = new Intent(this, MainService.class);
-            startService(intent);
+        //Check permissions
+        if(!ProcessLibrary.checkPermission()){
+            //TODO: Open a popup telling the user that the app will not work
+            TextView box = (TextView) findViewById(R.id.textBox);
+            box.setText("ERROR: Cannot read process state [Root privileges required in Android 7+]");
+            return;
         }
+
+        //Start service
+        startService(new Intent(this, MainService.class));
     }
 
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        Log.d("MainActivity", "Exited");
     }
 
     //Launch 'options' activity
     public void options(View view){
-        //TODO: Is the intent actually required at all? Not passing anything...
-        Intent intent = new Intent(this, OptionsActivity.class);
-        startActivity(intent);
+        startActivity(new Intent(this, OptionsActivity.class));
     }
 
     //========================DEBUGGING=METHODS==========================
@@ -85,14 +74,13 @@ public class MainActivity extends AppCompatActivity {
         box.setText(info);
     }
 
+    //TODO: Fix!!
     public void reset(View view){
         MonitorLibrary.clearIntervals();
-        MonitorLibrary.startup(this);
+        MonitorLibrary.startup();
     }
 
-    public void startInterval(View view){
-        MonitorLibrary.newInterval(getApplicationContext(), 71, System.currentTimeMillis());
-    }
+
 
     public void parseIntervals(View view){
         TextView box = (TextView) findViewById(R.id.textBox);

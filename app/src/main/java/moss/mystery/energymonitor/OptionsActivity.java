@@ -66,4 +66,8 @@ public class OptionsActivity extends AppCompatActivity {
 
         text.setText(data);
     }
+
+    public void startInterval(View view){
+        MonitorLibrary.setBatteryLevel(MonitorLibrary.getBatteryLevel() - 1);
+    }
 }

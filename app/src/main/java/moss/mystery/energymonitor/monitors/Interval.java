@@ -3,8 +3,7 @@ package moss.mystery.energymonitor.monitors;
 import moss.mystery.energymonitor.processes.ProcessInfo;
 
 public class Interval {
-    //'level' is battery level at the START of the interval
-    public int level;
+    public int level;       //Battery level at start of interval - e.g. 80 = interval from 80 to 79%
     public long length;
     public long screenOnTime;
     public ProcessInfo[] activeProcs;

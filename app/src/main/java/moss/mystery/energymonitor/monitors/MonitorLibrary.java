@@ -1,13 +1,8 @@
 package moss.mystery.energymonitor.monitors;
 
 import android.app.AlarmManager;
-import android.content.Context;
-import android.hardware.display.DisplayManager;
-import android.os.Build;
 import android.os.Handler;
-import android.os.PowerManager;
 import android.util.Log;
-import android.view.Display;
 
 import java.util.ArrayList;
 
@@ -15,79 +10,74 @@ import moss.mystery.energymonitor.processes.ProcessLibrary;
 
 public class MonitorLibrary {
     private static final String DEBUG = "Monitor Library";
-    //Status
-    public static boolean running = false;
 
     //Battery
-    private static int currentBatteryLevel = -1;
-    private static boolean charging = false;
+    private static int batteryLevel;
+    private static boolean charging;
 
     //Screen
-    private static boolean screenOn = false;
+    private static boolean screenOn;
     private static long screenStart;
     private static long screenOnTime;
 
     //Interval
-    private static boolean firstInterval = true;
+    private static boolean firstInterval;
     private static long intervalStart;
-    private static ArrayList<Interval> intervals = new ArrayList<Interval>();
+    private static ArrayList<Interval> intervals;
     private static AlarmManager alarm;
-    private static Handler handler = new Handler();
-    private static boolean scheduled = false;
+    private static Handler handler;
+    private static RunnablePoll runnablePoll;
+
+    //TODO: Stop using hardcoded value!
+    public static long threshold = 200;           //CPU tick threshold to consider a process as 'active'
 
     //Control=======================================================================================
-    public static void startup(Context context){
-        Log.d("MonitorLibrary", "STARTING UP");
+    public static void startup(){
+        Log.d(DEBUG, "Startup");
+        handler = new Handler();
         firstInterval = true;
-        running = true;
-
-        //Get screen state
-        //Handles multiple displays, though in practice this situation is undefined
         screenOn = false;
-        resetScreenCounter();
+        charging = false;
+        batteryLevel = -1;
+        intervals = new ArrayList<Interval>();
+    }
 
-        if(Build.VERSION.SDK_INT >= 20) {
-            DisplayManager dm = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
-            for (Display display : dm.getDisplays()) {
-                if (display.getState() != Display.STATE_OFF) {
-                    screenOn();
-                    Log.d("MonitorLibrary", "Startup - screen is on");
-                    //TODO: Confirm this breaks from the for loop... I forget
-                    break;
-                }
-            }
-        } else {
-            PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-            if(powerManager.isScreenOn()){
-                screenOn();
-                Log.d("MonitorLibrary", "Startup - screen is on");
-            }
-        }
+    public static void shutdown(){
+        Log.d(DEBUG, "Shutdown");
+        stopPolling();
     }
     //Battery tracking==============================================================================
-    public static int getCurrentBatteryLevel(){
-        return currentBatteryLevel;
+    public static int getBatteryLevel(){
+        return batteryLevel;
     }
     public static void setBatteryLevel(int level) {
-        currentBatteryLevel = level;
+        if(level < batteryLevel){
+            newInterval(System.currentTimeMillis());
+        }
+        batteryLevel = level;
     }
     public static void chargerConnected(){
         charging = true;
-        stopRecording();
+        stopPolling();
+        firstInterval = true;
+        Log.d(DEBUG, "Charger connected");
     }
     public static void chargerDisconnected(){
         charging = false;
+        Log.d(DEBUG, "Charger disconnected");
     }
     public static boolean isCharging(){
         return charging;
     }
 
     //Screen tracking===============================================================================
-    public static void screenOn(){
-        screenOn = true;
-        screenStart = System.currentTimeMillis();
+    public static void setScreenOn(){
+        if(!screenOn) {
+            screenOn = true;
+            screenStart = System.currentTimeMillis();
+        }
     }
-    public static void screenOff(){
+    public static void setScreenOff(){
         if(screenOn) {
             screenOn = false;
             screenOnTime += System.currentTimeMillis() - screenStart;
@@ -99,18 +89,15 @@ public class MonitorLibrary {
             screenStart = System.currentTimeMillis();
         }
     }
-    public static long getScreenOnTime(){
+    public static long getScreenOnTime() {
         if(screenOn){
             screenOnTime += System.currentTimeMillis() - screenStart;
         }
         return screenOnTime;
     }
+    //TODO: Currently need to remember to call 'resetScreenCounter' - better to call it when 'getScreenOnTime()' is called, if this is appropriate behaviour
 
     //Interval tracking=============================================================================
-    public static void stopRecording(){
-        firstInterval = true;
-        cancelAlarm();
-    }
     public static void clearIntervals(){
         intervals.clear();
     }
@@ -120,28 +107,54 @@ public class MonitorLibrary {
     public static void populateInterval(Interval i){
         intervals.add(i);
     }
-    public static void newInterval(Context context, int level, long timestamp){
-        //Don't record details of previous interval for the first interval
+
+    public static void newInterval(long timestamp){
+        //Record previous interval (unless this is the first interval)
         if(!firstInterval){
-            intervals.add(new Interval(currentBatteryLevel, timestamp - intervalStart, getScreenOnTime(), ProcessLibrary.startNewSample()));
+            intervals.add(new Interval(batteryLevel, timestamp - intervalStart, getScreenOnTime(), ProcessLibrary.startNewSample()));
         }
         else{
             firstInterval = false;
             ProcessLibrary.startNewSample();
         }
 
+        resetScreenCounter();
+        intervalStart = timestamp;
+
         //Periodically poll for running processes
-        //TODO: Factor this out, account for varying poll times
-        Log.d("MonitorLibrary", "Setting up the alarm");
+        stopPolling();
+        startPolling(30);
+    }
 
-        //TODO: Make this check nicer!
-        if(scheduled){
-            handler.removeCallbacks(poll_prelim);
+    private static void stopPolling(){
+        try{
+            handler.removeCallbacks(runnablePoll);
+        } catch(Exception ignored){
+            Log.d(DEBUG, "Error removing 'runnablePoll' callbacks: " + ignored);
         }
-        handler.post(poll_prelim);
-        scheduled = true;
 
+//        Intent intent = new Intent(context, AlarmReceiver.class);
+//        final PendingIntent pIntent = PendingIntent.getBroadcast(context, AlarmReceiver.REQUEST_CODE,
+//                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//        long firstMillis = System.currentTimeMillis();
+//
+//        if (alarm != null){
+//            alarm.cancel (pIntent);
+//        }
+    }
 
+    private static void startPolling(int interval){
+        if(interval < 1){
+            interval = 1;
+        }
+
+        //If poll rate is below 60 seconds, use a 'Runnable' task
+        if(interval < 60){
+            runnablePoll = new RunnablePoll(handler, threshold, interval);
+            handler.post(runnablePoll);
+        }
+        //Else use an alarm
+        else {
 //        //Increase context capabilities?
 //        context = context.getApplicationContext();
 //
@@ -160,36 +173,6 @@ public class MonitorLibrary {
 //        //TODO: Why does it only trigger every minute, not every 30 seconds?
 //        //And even that is pretty inconsistent...
 //        alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, firstMillis, 30 * 1000, pIntent);
-
-        resetScreenCounter();
-        intervalStart = timestamp;
-        currentBatteryLevel = level;
-    }
-
-    //TODO: Make this nicer - its an object, not a method
-    private static Runnable poll_prelim = new Runnable(){
-        @Override
-        public void run(){
-            //TODO: Maybe pass this to something else via intent? Unclear, research effects of this
-            Log.d(DEBUG, "Polling processes");
-            ProcessLibrary.parseProcs(0);
-
-            handler.postDelayed(poll_prelim, 30000);
         }
-    };
-
-    //TODO: Tidy this up, work out how context actually works
-    public static void cancelAlarm(){
-        if(scheduled){
-            handler.removeCallbacks(poll_prelim);
-        }
-//        Intent intent = new Intent(context, AlarmReceiver.class);
-//        final PendingIntent pIntent = PendingIntent.getBroadcast(context, AlarmReceiver.REQUEST_CODE,
-//                intent, PendingIntent.FLAG_UPDATE_CURRENT);
-//        long firstMillis = System.currentTimeMillis();
-//
-//        if (alarm != null){
-//            alarm.cancel (pIntent);
-//        }
     }
 }
