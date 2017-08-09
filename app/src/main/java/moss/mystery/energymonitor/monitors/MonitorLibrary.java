@@ -27,8 +27,6 @@ public class MonitorLibrary {
     private static AlarmManager alarm;
     private static Handler handler;
     private static RunnablePoll runnablePoll;
-
-    //TODO: Stop using hardcoded value!
     public static long threshold = 200;           //CPU tick threshold to consider a process as 'active'
 
     //Control=======================================================================================
@@ -45,6 +43,11 @@ public class MonitorLibrary {
     public static void shutdown(){
         Log.d(DEBUG, "Shutdown");
         stopPolling();
+    }
+
+    //TODO: Ideally gracefully handle changing threshold partway through an interval
+    public static void setThreshold(long t){
+        threshold = t;
     }
     //Battery tracking==============================================================================
     public static int getBatteryLevel(){

@@ -16,6 +16,7 @@ import android.util.Log;
 import moss.mystery.energymonitor.monitors.BatteryMonitor;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
 import moss.mystery.energymonitor.monitors.ScreenMonitor;
+import moss.mystery.energymonitor.processes.CPUThreshold;
 import moss.mystery.energymonitor.processes.ProcessLibrary;
 
 public class MainService extends Service {
@@ -37,7 +38,9 @@ public class MainService extends Service {
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.icon_temp)
                 .setContentTitle("Battery Monitor")
-                .setContentText("Recording app power usage.");
+                .setContentText("Recording app power usage.")
+                //.setCategory(Notification.CATEGORY_SERVICE)
+                .setOngoing(true);
         Intent notificationIntent = new Intent(this, MainActivity.class);
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
@@ -52,6 +55,13 @@ public class MainService extends Service {
         //Start monitor components
         ProcessLibrary.reset();
         MonitorLibrary.startup();
+
+        //Determine CPU threshold
+        //TODO: Split this out into another thread?
+            //Currently requires PL.reset() to be called before calling it...
+        //long threshold = CPUThreshold.getThreshold();
+        //MonitorLibrary.setThreshold(threshold);
+        //Log.d(DEBUG, "Threshold set as " + threshold);
 
         Context context = getApplicationContext();
 

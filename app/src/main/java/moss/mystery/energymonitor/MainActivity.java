@@ -13,6 +13,7 @@ import java.util.HashMap;
 import moss.mystery.energymonitor.classifier.ClassifierLibrary;
 import moss.mystery.energymonitor.monitors.Interval;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
+import moss.mystery.energymonitor.processes.CPUThreshold;
 import moss.mystery.energymonitor.processes.Process;
 import moss.mystery.energymonitor.processes.ProcessInfo;
 import moss.mystery.energymonitor.processes.ProcessLibrary;
@@ -39,6 +40,9 @@ public class MainActivity extends AppCompatActivity {
         if(runService) {
             startService(new Intent(this, MainService.class));
         }
+
+        TextView box = (TextView) findViewById(R.id.textBox);
+        box.setText("CPU Threshold value = " + MonitorLibrary.threshold);
     }
 
     @Override
