@@ -1,6 +1,8 @@
 package moss.mystery.energymonitor.monitors;
 
 import android.app.AlarmManager;
+import android.app.job.JobInfo;
+import android.net.TrafficStats;
 import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
@@ -12,6 +14,8 @@ import moss.mystery.energymonitor.processes.ProcessLibrary;
 
 public class MonitorLibrary {
     private static final String DEBUG = "Monitor Library";
+    //TODO: TEMP
+    public static int debug = 0;
 
     //Battery
     private static int batteryLevel;
@@ -21,6 +25,10 @@ public class MonitorLibrary {
     private static boolean screenOn;
     private static long screenStart;
     private static long screenOnTime;
+
+    //Network
+    private static long rx;
+    private static long tx;
 
     //Interval
     private static boolean firstInterval;
@@ -79,6 +87,7 @@ public class MonitorLibrary {
         return charging;
     }
 
+    //TODO: Refactor these two out into a separate, exapdable resource tracking thing
     //Screen tracking===============================================================================
     public static void setScreenOn(){
         if(!screenOn) {
@@ -105,6 +114,25 @@ public class MonitorLibrary {
         return screenOnTime;
     }
     //TODO: Currently need to remember to call 'resetScreenCounter' - better to call it when 'getScreenOnTime()' is called, if this is appropriate behaviour
+        //As below for network!
+
+    //Network tracking==============================================================================
+    private static long getNetworkBytes(){
+        long rxnew = TrafficStats.getTotalRxBytes();
+        long txnew = TrafficStats.getTotalTxBytes();
+
+        if(rxnew - rx < 0 || txnew - tx < 0){
+            ++debug;
+            return 0;
+        }
+
+        return (rxnew - rx) + (txnew - tx);
+    }
+
+    private static void resetNetworkBytes(){
+        rx = TrafficStats.getTotalRxBytes();
+        tx = TrafficStats.getTotalTxBytes();
+    }
 
     //Interval tracking=============================================================================
     public static void clearIntervals(){
@@ -121,7 +149,7 @@ public class MonitorLibrary {
     public static void newInterval(long timestamp, boolean specialCase){
         //Record previous interval (unless this is the first interval)
         if(!firstInterval){
-            intervals.add(new Interval(batteryLevel, timestamp - intervalStart, getScreenOnTime(), ProcessLibrary.startNewSample()));
+            intervals.add(new Interval(batteryLevel, timestamp - intervalStart, getScreenOnTime(), getNetworkBytes(), ProcessLibrary.startNewSample()));
             if(MainActivity.appContext != null) {
                 Toast toast = Toast.makeText(MainActivity.appContext, "BATTERY LEVEL DROPPED - " + (timestamp - intervalStart)/1000, Toast.LENGTH_LONG);
                 toast.show();
@@ -135,6 +163,7 @@ public class MonitorLibrary {
         }
 
         resetScreenCounter();
+        resetNetworkBytes();
         intervalStart = timestamp;
 
         //Periodically poll for running processes

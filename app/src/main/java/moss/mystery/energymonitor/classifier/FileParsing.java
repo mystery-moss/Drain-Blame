@@ -98,7 +98,7 @@ public class FileParsing {
         for (int i = 0; i < size; i++) {
             Interval x = intervals.get(i);
 
-            data.append(x.level).append(' ').append(x.length).append(' ').append(x.screenOnTime);
+            data.append(x.level).append(' ').append(x.length).append(' ').append(x.screenOnTime).append(' ').append(x.networkBytes);
 
             for (ProcessInfo p : x.activeProcs) {
                 data.append(' ').append(p.name).append(' ').append(p.ticks);
@@ -124,17 +124,18 @@ public class FileParsing {
         int level = Integer.parseInt(data[0]);
         long length = Long.parseLong(data[1]);
         long screenOnTime = Long.parseLong(data[2]);
+        long networkBytes = Long.parseLong(data[3]);
 
-        int numProcs = (data.length - 3) / 2;
+        int numProcs = (data.length - 4) / 2;
         ProcessInfo[] activeProcs = new ProcessInfo[numProcs];
 
 
         if(numProcs > 0){
             for(int i = 0; i < numProcs; i++){
-                activeProcs[i] = new ProcessInfo(data[i + 3], Long.parseLong(data[i + 4]));
+                activeProcs[i] = new ProcessInfo(data[i + 4], Long.parseLong(data[i + 5]));
             }
         }
 
-        MonitorLibrary.populateInterval(new Interval(level, length, screenOnTime, activeProcs));
+        MonitorLibrary.populateInterval(new Interval(level, length, screenOnTime, networkBytes, activeProcs));
     }
 }
