@@ -128,6 +128,7 @@ public class FileParsing {
         int numProcs = (data.length - 3) / 2;
         ProcessInfo[] activeProcs = new ProcessInfo[numProcs];
 
+
         if(numProcs > 0){
             for(int i = 0; i < numProcs; i++){
                 activeProcs[i] = new ProcessInfo(data[i + 3], Long.parseLong(data[i + 4]));

@@ -1,5 +1,6 @@
 package moss.mystery.energymonitor;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -22,11 +23,15 @@ public class MainActivity extends AppCompatActivity {
     private static final String DEBUG = "MainActivity";
     public static boolean runService = true;
 
+    public static Context appContext = null;
+
     @Override
     //Perform checks and setup
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        appContext = getApplicationContext();
 
         //Check permissions
         if(!ProcessLibrary.checkPermission()){
@@ -48,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy(){
         super.onDestroy();
+        appContext = null;
     }
 
     //Launch 'options' activity
@@ -125,6 +131,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         box.setText(info);
+    }
+
+    public void categorise(View view){
+        TextView box = (TextView) findViewById(R.id.textBox);
+
+        ClassifierLibrary.getThresholds();
+
+        box.setText("Fsafasfas");
     }
 
 //    public void listProcs(View view){

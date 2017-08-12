@@ -1,6 +1,7 @@
 package moss.mystery.energymonitor;
 
 import android.content.Intent;
+import android.net.TrafficStats;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.StringBuilderPrinter;
@@ -14,6 +15,7 @@ import moss.mystery.energymonitor.classifier.FileParsing;
 import moss.mystery.energymonitor.monitors.Interval;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
 import moss.mystery.energymonitor.processes.ProcessInfo;
+import moss.mystery.energymonitor.processes.ProcessLibrary;
 
 public class OptionsActivity extends AppCompatActivity {
 
@@ -91,6 +93,23 @@ public class OptionsActivity extends AppCompatActivity {
             MainActivity.runService = true;
             startService(new Intent(this, MainService.class));
             toggle.setText("Stop Monitoring");
+        }
+    }
+
+    static long rx = 0;
+    static long tx = 0;
+    public void network(View view){
+        TextView text = (TextView) findViewById(R.id.statusText);
+        long rxnew = TrafficStats.getTotalRxBytes();
+        long txnew = TrafficStats.getTotalTxBytes();
+
+        if(rxnew < rx || txnew < tx){
+            text.setText("Total has decreased!");
+        }
+        else {
+            rx = rxnew;
+            tx = txnew;
+            text.setText("Receive total: " + rx + "\nSend total: " + tx);
         }
     }
 }

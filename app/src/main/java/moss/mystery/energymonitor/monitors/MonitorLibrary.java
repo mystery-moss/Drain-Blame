@@ -3,9 +3,11 @@ package moss.mystery.energymonitor.monitors;
 import android.app.AlarmManager;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import moss.mystery.energymonitor.MainActivity;
 import moss.mystery.energymonitor.processes.ProcessLibrary;
 
 public class MonitorLibrary {
@@ -27,7 +29,7 @@ public class MonitorLibrary {
     private static AlarmManager alarm;
     private static Handler handler;
     private static RunnablePoll runnablePoll;
-    public static long threshold = 200;           //CPU tick threshold to consider a process as 'active'
+    public static long threshold = 50;           //CPU tick threshold to consider a process as 'active'
 
     //Control=======================================================================================
     public static void startup(){
@@ -55,18 +57,22 @@ public class MonitorLibrary {
     }
     public static void setBatteryLevel(int level) {
         if(level < batteryLevel){
-            newInterval(System.currentTimeMillis());
+            newInterval(System.currentTimeMillis(), false);
         }
         batteryLevel = level;
     }
     public static void chargerConnected(){
         charging = true;
         stopPolling();
+        //TODO: Double check that this is the best place for this ***********************************************
+        ProcessLibrary.reset();
         firstInterval = true;
         Log.d(DEBUG, "Charger connected");
     }
     public static void chargerDisconnected(){
         charging = false;
+        //TODO: As above! ****************************************
+        newInterval(System.currentTimeMillis(), true);
         Log.d(DEBUG, "Charger disconnected");
     }
     public static boolean isCharging(){
@@ -111,13 +117,20 @@ public class MonitorLibrary {
         intervals.add(i);
     }
 
-    public static void newInterval(long timestamp){
+    //TODO: SPECIAL CASE AS ABOVE DOUBEL CHECK PLEASE ************************************************
+    public static void newInterval(long timestamp, boolean specialCase){
         //Record previous interval (unless this is the first interval)
         if(!firstInterval){
             intervals.add(new Interval(batteryLevel, timestamp - intervalStart, getScreenOnTime(), ProcessLibrary.startNewSample()));
+            if(MainActivity.appContext != null) {
+                Toast toast = Toast.makeText(MainActivity.appContext, "BATTERY LEVEL DROPPED - " + (timestamp - intervalStart)/1000, Toast.LENGTH_LONG);
+                toast.show();
+            }
         }
         else{
-            firstInterval = false;
+            if(!specialCase) {
+                firstInterval = false;
+            }
             ProcessLibrary.startNewSample();
         }
 

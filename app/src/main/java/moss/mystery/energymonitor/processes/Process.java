@@ -1,7 +1,7 @@
 package moss.mystery.energymonitor.processes;
 
 public class Process{
-    public long intTicks;   //CPU ticks in the current sample interval
+    public long intTicks;   //CPU ticks in the current battery interval
     private long prevTicks; //CPU ticks when last sampled
     private long startTime; //starttime when last observed
     public boolean active;  //Was process active in last sample interval
