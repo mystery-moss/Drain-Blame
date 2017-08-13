@@ -74,7 +74,7 @@ public class ProcessLibrary {
                         processes.put(name, new Process(time));
                     } else {
                         //All ticks occurred in this interval, mark as active if past threshold
-                        processes.put(name, proc = new Process(time, time.ticks >= threshold));
+                        processes.put(name, new Process(time, time.ticks >= threshold));
                     }
                 //Else update elapsed ticks
                 } else {

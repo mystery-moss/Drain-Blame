@@ -7,8 +7,8 @@ public class ProcessInfo {
     public long ticks;
     public long network;
 
-    public ProcessInfo(String name, long tick){
-        name = name;
-        ticks = tick;
+    public ProcessInfo(String name, long ticks){
+        this.name = name;
+        this.ticks = ticks;
     }
 }
