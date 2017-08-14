@@ -57,6 +57,8 @@ public class BatteryMonitor extends BroadcastReceiver {
         if(charging){
             charging = false;
             MonitorLibrary.chargerDisconnected();
+            //Cause next statement to fire, updating battery level here and in MonitorLibrary
+            previousLevel = level + 1;
         }
         //Battery level has dropped
         if(level < previousLevel){
