@@ -1,10 +1,7 @@
 package moss.mystery.energymonitor;
 
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -16,8 +13,8 @@ import android.util.Log;
 import moss.mystery.energymonitor.monitors.BatteryMonitor;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
 import moss.mystery.energymonitor.monitors.ScreenMonitor;
-import moss.mystery.energymonitor.processes.CPUThreshold;
 import moss.mystery.energymonitor.processes.ProcessLibrary;
+import moss.mystery.energymonitor.ui.MainActivity;
 
 public class MainService extends Service {
     private static final String DEBUG = "MainService";

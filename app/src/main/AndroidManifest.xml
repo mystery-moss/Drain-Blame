@@ -14,7 +14,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -45,7 +45,8 @@
             android:enabled="true"
             android:exported="false" />
 
-        <activity android:name=".OptionsActivity"></activity>
+        <activity android:name=".ui.OptionsActivity" />
+        <activity android:name=".ui.AppListActivity"></activity>
     </application>
 
 </manifest>

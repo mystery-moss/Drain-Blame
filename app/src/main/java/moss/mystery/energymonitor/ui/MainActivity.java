@@ -1,21 +1,20 @@
-package moss.mystery.energymonitor;
+package moss.mystery.energymonitor.ui;
 
 import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import moss.mystery.energymonitor.MainService;
+import moss.mystery.energymonitor.R;
 import moss.mystery.energymonitor.classifier.ClassifierLibrary;
 import moss.mystery.energymonitor.monitors.Interval;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
-import moss.mystery.energymonitor.processes.CPUThreshold;
-import moss.mystery.energymonitor.processes.Process;
 import moss.mystery.energymonitor.processes.ProcessInfo;
 import moss.mystery.energymonitor.processes.ProcessLibrary;
 
@@ -59,6 +58,11 @@ public class MainActivity extends AppCompatActivity {
     //Launch 'options' activity
     public void options(View view){
         startActivity(new Intent(this, OptionsActivity.class));
+    }
+
+    //Launch 'options' activity
+    public void listActivity(View view){
+        startActivity(new Intent(this, AppListActivity.class));
     }
 
     //========================DEBUGGING=METHODS==========================

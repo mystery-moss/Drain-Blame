@@ -1,21 +1,22 @@
-package moss.mystery.energymonitor;
+package moss.mystery.energymonitor.ui;
 
 import android.content.Intent;
 import android.net.TrafficStats;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.StringBuilderPrinter;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import moss.mystery.energymonitor.MainService;
+import moss.mystery.energymonitor.R;
 import moss.mystery.energymonitor.classifier.FileParsing;
 import moss.mystery.energymonitor.monitors.Interval;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
 import moss.mystery.energymonitor.processes.ProcessInfo;
-import moss.mystery.energymonitor.processes.ProcessLibrary;
+import moss.mystery.energymonitor.ui.MainActivity;
 
 public class OptionsActivity extends AppCompatActivity {
 

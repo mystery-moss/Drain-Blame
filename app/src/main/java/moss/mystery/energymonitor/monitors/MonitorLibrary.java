@@ -1,7 +1,6 @@
 package moss.mystery.energymonitor.monitors;
 
 import android.app.AlarmManager;
-import android.app.job.JobInfo;
 import android.net.TrafficStats;
 import android.os.Handler;
 import android.util.Log;
@@ -9,7 +8,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
-import moss.mystery.energymonitor.MainActivity;
+import moss.mystery.energymonitor.ui.MainActivity;
 import moss.mystery.energymonitor.processes.ProcessLibrary;
 
 public class MonitorLibrary {
