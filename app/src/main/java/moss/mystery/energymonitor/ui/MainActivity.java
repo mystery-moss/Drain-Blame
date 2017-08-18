@@ -12,6 +12,7 @@ import java.util.HashMap;
 
 import moss.mystery.energymonitor.MainService;
 import moss.mystery.energymonitor.R;
+import moss.mystery.energymonitor.classifier.ClassifiedApp;
 import moss.mystery.energymonitor.classifier.ClassifierLibrary;
 import moss.mystery.energymonitor.monitors.Interval;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
@@ -102,47 +103,16 @@ public class MainActivity extends AppCompatActivity {
     public void parseIntervals(View view){
         TextView box = (TextView) findViewById(R.id.textBox);
 
-        ArrayList<Interval> intervals = MonitorLibrary.getIntervals();
-        if(intervals == null){
-            box.setText("No intervals");
-            return;
-        }
 
-        //First pass: Extract list of processes and add lengths of intervals they are active in
-        HashMap<String, ArrayList<Integer>> processes = new HashMap<String, ArrayList<Integer>>();
-
-        for(Interval interval : intervals){
-            for(ProcessInfo proc : interval.activeProcs){
-                ArrayList<Integer> procIntervals = processes.get(proc.name);
-                if(procIntervals == null){
-                    processes.put(proc.name, new ArrayList<Integer>());
-                    procIntervals = processes.get(proc.name);
-                }
-                procIntervals.add(ClassifierLibrary.classifyInterval(interval.length));
-            }
-        }
-
-        StringBuilder info = new StringBuilder("PROCESSES:\n");
-
-        //Assign basic levels to processes
-        for(String key : processes.keySet()){
-            info.append(key).append(": ");
-            ArrayList<Integer> lengths = processes.get(key);
-            for(int length : lengths){
-                info.append(length).append(", ");
-            }
-            info.append('\n');
-        }
-
-        box.setText(info);
+        box.setText("You should probably remove that button.");
     }
 
     public void categorise(View view){
         TextView box = (TextView) findViewById(R.id.textBox);
 
-        ClassifierLibrary.getThresholds();
+        ClassifierLibrary.classify();
 
-        box.setText("Fsafasfas");
+        box.setText("Observed processes categorised");
     }
 
 //    public void listProcs(View view){

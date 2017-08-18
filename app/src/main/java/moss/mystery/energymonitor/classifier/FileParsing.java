@@ -132,7 +132,7 @@ public class FileParsing {
 
         if(numProcs > 0){
             for(int i = 0; i < numProcs; i++){
-                activeProcs[i] = new ProcessInfo(data[i + 4], Long.parseLong(data[i + 5]));
+                activeProcs[i] = new ProcessInfo(data[(2 * i) + 4], Long.parseLong(data[(2 * i) + 5]));
             }
         }
 

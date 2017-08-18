@@ -9,6 +9,7 @@ import android.widget.ListView;
 import java.util.ArrayList;
 
 import moss.mystery.energymonitor.R;
+import moss.mystery.energymonitor.classifier.ClassifierLibrary;
 import moss.mystery.energymonitor.processes.ProcessInfo;
 import moss.mystery.energymonitor.processes.ProcessLibrary;
 
@@ -19,12 +20,12 @@ public class AppListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app_list);
 
-        //TEMPORARY for testing
-        ProcessLibrary.parseProcs(0);
-        ProcessInfo[] apps = ProcessLibrary.startNewSample();
+//        //TEMPORARY for testing
+//        ProcessLibrary.parseProcs(0);
+//        ProcessInfo[] apps = ProcessLibrary.startNewSample();
 
         //Args are context, layout, the array to take data from
-        AppArrayAdapter adapter = new AppArrayAdapter(this, apps);
+        AppArrayAdapter adapter = new AppArrayAdapter(this, ClassifierLibrary.classifiedApps);
 
         ListView listView = (ListView) findViewById(R.id.app_list);
         listView.setAdapter(adapter);
@@ -34,6 +35,7 @@ public class AppListActivity extends AppCompatActivity {
     public static ApplicationInfo getAppInfo(String proc, PackageManager pm){
         ApplicationInfo ai;
         //Request app name from package name string
+        //TODO: This can be removed - if no "/", whole name is added to testStrings.
         try {
             ai = pm.getApplicationInfo(proc, 0);
             return ai;
