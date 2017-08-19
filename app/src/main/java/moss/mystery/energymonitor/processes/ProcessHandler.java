@@ -1,5 +1,6 @@
 package moss.mystery.energymonitor.processes;
 
+import android.content.pm.PackageManager;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -10,6 +11,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+
+import moss.mystery.energymonitor.apps.App;
+import moss.mystery.energymonitor.apps.AppHandler;
 
 /**
  * Adapted from https://github.com/jaredrummler/AndroidProcesses
@@ -24,10 +28,12 @@ public class ProcessHandler {
 
     private boolean firstSample = true;          //Flag for handling special case
     private HashMap<String, Process> processes;
+    private AppHandler appHandler;
 
-    public ProcessHandler(){
+    public ProcessHandler(AppHandler _appHandler){
         processes = new HashMap<>();
         firstSample = true;
+        appHandler = _appHandler;
     }
 
     //Tidy up process list
@@ -72,38 +78,18 @@ public class ProcessHandler {
                 if(proc == null){
                     if(firstSample){
                         //Handle special case (cannot know when ticks occurred)
-                        processes.put(name, new Process(time));
+                        processes.put(name, new Process(time, name, appHandler, 0));
                     } else {
-                        //All ticks occurred in this interval, mark as active if past threshold
-                        processes.put(name, new Process(time, time.ticks >= threshold));
+                        //All ticks occurred in this interval
+                        processes.put(name, new Process(time, name, appHandler));
                     }
                 //Else update elapsed ticks
                 } else {
-                    proc.updateTicks(time, threshold);
+                    proc.updateTicks(time);
                 }
             }
         }
         firstSample = false;
-    }
-
-    //Get list of procs active in this interval, reset interval ticks and active flags for all procs
-    public ActiveApp[] startNewSample(){
-        List<ActiveApp> procList = new ArrayList<ActiveApp>();
-
-        for(String key : processes.keySet()){
-            Process proc = processes.get(key);
-            if(proc.active){
-                procList.add(new ActiveApp(key, proc.intTicks));
-                proc.active = false;
-            }
-            proc.intTicks = 0;
-        }
-
-        return procList.toArray(new ActiveApp[0]);
-    }
-
-    public HashMap<String, Process> processList(){
-        return processes;
     }
 
     //TODO: Robustify - check best practices for handling BufferedReaders

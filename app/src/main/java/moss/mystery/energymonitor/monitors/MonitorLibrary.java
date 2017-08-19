@@ -8,6 +8,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import moss.mystery.energymonitor.apps.AppHandler;
 import moss.mystery.energymonitor.ui.MainActivity;
 import moss.mystery.energymonitor.processes.ProcessHandler;
 
@@ -17,6 +18,7 @@ public class MonitorLibrary {
     public static int debug = 0;
 
     private ProcessHandler processHandler;
+    private AppHandler appHandler;
 
     //Battery
     private int batteryLevel;
@@ -41,9 +43,10 @@ public class MonitorLibrary {
     public long threshold = 50;           //CPU tick threshold to consider a process as 'active'
 
     //Control=======================================================================================
-    public MonitorLibrary(ProcessHandler processHandler){
+    public MonitorLibrary(ProcessHandler processHandler, AppHandler appHandler){
         Log.d(DEBUG, "Startup");
         this.processHandler = processHandler;
+        this.appHandler = appHandler;
         handler = new Handler();
         firstInterval = true;
         screenOn = false;
@@ -151,7 +154,7 @@ public class MonitorLibrary {
     public void newInterval(long timestamp, boolean specialCase){
         //Record previous interval (unless this is the first interval)
         if(!firstInterval){
-            intervals.add(new Interval(batteryLevel, timestamp - intervalStart, getScreenOnTime(), getNetworkBytes(), processHandler.startNewSample()));
+            intervals.add(new Interval(batteryLevel, timestamp - intervalStart, getScreenOnTime(), getNetworkBytes(), appHandler.startNewSample()));
             if(MainActivity.appContext != null) {
                 Toast toast = Toast.makeText(MainActivity.appContext, "BATTERY LEVEL DROPPED - " + (timestamp - intervalStart)/1000, Toast.LENGTH_LONG);
                 toast.show();
@@ -161,7 +164,7 @@ public class MonitorLibrary {
             if(!specialCase) {
                 firstInterval = false;
             }
-            processHandler.startNewSample();
+            appHandler.startNewSample();
         }
 
         resetScreenCounter();

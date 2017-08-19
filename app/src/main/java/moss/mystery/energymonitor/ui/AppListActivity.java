@@ -20,7 +20,7 @@ public class AppListActivity extends AppCompatActivity {
 
 //        //TEMPORARY for testing
 //        ProcessHandler.parseProcs(0);
-//        ActiveApp[] apps = ProcessHandler.startNewSample();
+//        App[] apps = ProcessHandler.startNewSample();
 
         //Args are context, layout, the array to take data from
         AppArrayAdapter adapter = new AppArrayAdapter(this, ClassifierLibrary.classifiedApps);

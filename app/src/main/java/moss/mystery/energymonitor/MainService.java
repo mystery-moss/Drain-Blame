@@ -52,7 +52,7 @@ public class MainService extends Service {
         startForeground(NOTIFICATION_ID, mBuilder.build());
 
         //Start monitor components
-        globals = ApplicationGlobals.get();
+        globals = ApplicationGlobals.get(getApplicationContext());
 
         //Determine CPU threshold
         //TODO: Split this out into another thread?

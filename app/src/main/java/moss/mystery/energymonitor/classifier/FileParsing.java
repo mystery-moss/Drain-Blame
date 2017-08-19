@@ -10,9 +10,9 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.util.ArrayList;
 
+import moss.mystery.energymonitor.apps.App;
 import moss.mystery.energymonitor.monitors.Interval;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
-import moss.mystery.energymonitor.processes.ActiveApp;
 
 public class FileParsing {
     //TODO: Look into making error catching here more robust? E.g. have closing files in 'finally' block rather than within the try?
@@ -96,7 +96,7 @@ public class FileParsing {
 
             data.append(x.level).append(' ').append(x.length).append(' ').append(x.screenOnTime).append(' ').append(x.networkBytes);
 
-            for (ActiveApp p : x.activeProcs) {
+            for (App p : x.activeProcs) {
                 data.append(' ').append(p.name).append(' ').append(p.ticks);
             }
             data.append('\n');
@@ -123,12 +123,12 @@ public class FileParsing {
         long networkBytes = Long.parseLong(data[3]);
 
         int numProcs = (data.length - 4) / 2;
-        ActiveApp[] activeProcs = new ActiveApp[numProcs];
+        App[] activeProcs = new App[numProcs];
 
 
         if(numProcs > 0){
             for(int i = 0; i < numProcs; i++){
-                activeProcs[i] = new ActiveApp(data[(2 * i) + 4], Long.parseLong(data[(2 * i) + 5]));
+                activeProcs[i] = new App(data[(2 * i) + 4], Long.parseLong(data[(2 * i) + 5]));
             }
         }
 

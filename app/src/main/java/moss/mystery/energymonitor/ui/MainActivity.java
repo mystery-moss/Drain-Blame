@@ -12,16 +12,15 @@ import java.util.ArrayList;
 import moss.mystery.energymonitor.ApplicationGlobals;
 import moss.mystery.energymonitor.MainService;
 import moss.mystery.energymonitor.R;
+import moss.mystery.energymonitor.apps.App;
 import moss.mystery.energymonitor.classifier.ClassifierLibrary;
 import moss.mystery.energymonitor.monitors.Interval;
-import moss.mystery.energymonitor.monitors.MonitorLibrary;
-import moss.mystery.energymonitor.processes.ActiveApp;
 import moss.mystery.energymonitor.processes.ProcessHandler;
 
 public class MainActivity extends AppCompatActivity {
     private static final String DEBUG = "MainActivity";
-    private static ApplicationGlobals globals;
-    public static boolean runService = true;
+
+    private ApplicationGlobals globals;
 
     //TODO: Hmmmm
     public static Context appContext = null;
@@ -33,9 +32,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        appContext = getApplicationContext();
-
-        globals = ApplicationGlobals.get();
+        globals = ApplicationGlobals.get(getApplicationContext());
 
         //Check permissions
         if(!ProcessHandler.checkPermission()){
@@ -46,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //Start service
-        if(runService) {
+        if(globals.serviceEnabled) {
             startService(new Intent(this, MainService.class));
         }
 
@@ -87,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         for(Interval interval : intervals){
             info.append("+++++++ ").append(interval.level).append(" - ").append(interval.level - 1);
             info.append(": ").append(interval.length / 1000).append(" - Screen ticks = ").append(interval.screenOnTime / 1000).append('\n');
-            for(ActiveApp proc : interval.activeProcs){
+            for(App proc : interval.activeProcs){
                 info.append(proc.name).append(", ");
             }
             info.append('\n');

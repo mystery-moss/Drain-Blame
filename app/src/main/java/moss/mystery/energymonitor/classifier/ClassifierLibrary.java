@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import moss.mystery.energymonitor.apps.App;
 import moss.mystery.energymonitor.monitors.Interval;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
-import moss.mystery.energymonitor.processes.ActiveApp;
 
 //TODO: Make sure I'm not in a position where 'intervals' can be updated while I'm using it!
     //Ok, currently using a 'clone' which should be ok
@@ -34,13 +34,13 @@ public class ClassifierLibrary {
         //PASS 0:
         //Remove any process in interval with ticks below CPU threshold
         for(Interval interval : intervals){
-            ArrayList<ActiveApp> pastThreshold = new ArrayList<ActiveApp>();
-            for(ActiveApp info : interval.activeProcs){
+            ArrayList<App> pastThreshold = new ArrayList<App>();
+            for(App info : interval.activeProcs){
                 if(info.ticks >= cpuThreshold){
                     pastThreshold.add(info);
                 }
             }
-            interval.activeProcs = pastThreshold.toArray(new ActiveApp[0]);
+            interval.activeProcs = pastThreshold.toArray(new App[0]);
         }
 
         //PASS 0:
@@ -93,7 +93,7 @@ public class ClassifierLibrary {
         //Get list of unclassified apps [[[which are active in short intervals]]]:
         ArraySet<String> unclassified = new ArraySet<String>();
         for(Interval interval : intervals){
-            for(ActiveApp proc : interval.activeProcs){
+            for(App proc : interval.activeProcs){
                 if(highDrain.get(proc.name) == null) {
                     unclassified.add(proc.name);
                 }
@@ -105,7 +105,7 @@ public class ClassifierLibrary {
             int longactive = 0;
             int totalactive = 0;
             for(Interval interval : intervals){
-                for(ActiveApp proc : interval.activeProcs){
+                for(App proc : interval.activeProcs){
                     if(proc.name.equals(app)){
                         ++totalactive;
                         if(interval.length < shortint){
@@ -148,7 +148,7 @@ public class ClassifierLibrary {
 
         for(Interval interval : intervals){
             if(interval.length < shortint){
-                for(ActiveApp proc : interval.activeProcs){
+                for(App proc : interval.activeProcs){
                     if(proc.name.equals(target)){
                         toRemove.add(interval);
                         break;
