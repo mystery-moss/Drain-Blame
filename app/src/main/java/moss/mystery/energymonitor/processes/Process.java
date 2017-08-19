@@ -6,7 +6,7 @@ public class Process{
     private long startTime; //starttime when last observed
     public boolean active;  //Was process active in last sample interval
 
-    public Process(ProcessTime time, boolean _active){
+    public Process(CPUTicks time, boolean _active){
         prevTicks = time.ticks;
         intTicks = time.ticks;
         startTime = time.start;
@@ -16,14 +16,14 @@ public class Process{
     //If this is the very first interval but the process was already running, we can't attribute the
     //elapsed ticks of this process to the current interval - so set to 0 instead.
     //Also cannot determine whether process was active in this interval.
-    public Process(ProcessTime time){
+    public Process(CPUTicks time){
         prevTicks = time.ticks;
         intTicks = 0;
         startTime = time.start;
         active = false;
     }
 
-    public void updateTicks(ProcessTime time, long threshold){
+    public void updateTicks(CPUTicks time, long threshold){
         //If process has restarted since last observed, all of its ticks occurred in this interval
         if(startTime != time.start){
             startTime = time.start;

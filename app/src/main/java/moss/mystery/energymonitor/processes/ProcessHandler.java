@@ -1,6 +1,5 @@
 package moss.mystery.energymonitor.processes;
 
-import android.net.TrafficStats;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -14,25 +13,27 @@ import java.util.Locale;
 
 /**
  * Adapted from https://github.com/jaredrummler/AndroidProcesses
+ * Queries for currently running processes, keeps track of those previously observed
  */
 
-public class ProcessLibrary {
+public class ProcessHandler {
     private static final String PROC = "/proc";
     private static final String CMDLINE = "/proc/%d/cmdline";
     private static final String STAT = "/proc/%d/stat";
-    private static final String DEBUG = "ProcessLibrary";
+    private static final String DEBUG = "ProcessHandler";
 
-    private static boolean firstSample = true;          //Flag for handling special case
-    private static HashMap<String, Process> processes;
+    private boolean firstSample = true;          //Flag for handling special case
+    private HashMap<String, Process> processes;
 
-    //TODO: This.
-    public static boolean checkPermission(){
-        return true;
+    public ProcessHandler(){
+        processes = new HashMap<>();
+        firstSample = true;
     }
 
     //Tidy up process list
-    public static void reset(){
-        processes = new HashMap<String, Process>();
+    public void reset(){
+        //TODO: Is it more efficient to empty the existing hashmap?
+        processes = new HashMap<>();
         firstSample = true;
     }
 
@@ -43,7 +44,7 @@ public class ProcessLibrary {
     //Edge case: Unreadable dir gets replaced by readable one with same name within one sample
     //Workaround: Refresh entire list every set number of samples, hope it wasn't important
     //Would need benchmarks to justify making this change
-    public static void parseProcs(long threshold){
+    public void parseProcs(long threshold){
         Log.d(DEBUG, "Parsing processes");
         //Parse /proc directory
         File[] files = new File(PROC).listFiles();
@@ -61,7 +62,7 @@ public class ProcessLibrary {
                     continue;
                 }
                 //Get process CPU tick values
-                ProcessTime time = getTicks(pid);
+                CPUTicks time = getTicks(pid);
                 if(time == null){
                     continue;
                 }
@@ -86,22 +87,22 @@ public class ProcessLibrary {
     }
 
     //Get list of procs active in this interval, reset interval ticks and active flags for all procs
-    public static ProcessInfo[] startNewSample(){
-        List<ProcessInfo> procList = new ArrayList<ProcessInfo>();
+    public ActiveApp[] startNewSample(){
+        List<ActiveApp> procList = new ArrayList<ActiveApp>();
 
         for(String key : processes.keySet()){
             Process proc = processes.get(key);
             if(proc.active){
-                procList.add(new ProcessInfo(key, proc.intTicks));
+                procList.add(new ActiveApp(key, proc.intTicks));
                 proc.active = false;
             }
             proc.intTicks = 0;
         }
 
-        return procList.toArray(new ProcessInfo[0]);
+        return procList.toArray(new ActiveApp[0]);
     }
 
-    public static HashMap<String, Process> processList(){
+    public HashMap<String, Process> processList(){
         return processes;
     }
 
@@ -129,7 +130,7 @@ public class ProcessLibrary {
         return name.trim();
     }
 
-    private static ProcessTime getTicks(int pid){
+    private static CPUTicks getTicks(int pid){
         BufferedReader reader = null;
         String line = null;
         try {
@@ -155,6 +156,12 @@ public class ProcessLibrary {
         long stime = Long.parseLong(fields[14]);
         long start = Long.parseLong(fields[21]);
 
-        return new ProcessTime(utime + stime, start);
+        return new CPUTicks(utime + stime, start);
+    }
+
+    //TODO: This.
+    //Check whether we are allowed to read information in /proc
+    public static boolean checkPermission(){
+        return true;
     }
 }

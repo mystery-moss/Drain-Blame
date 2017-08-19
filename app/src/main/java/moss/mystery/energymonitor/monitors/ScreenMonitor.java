@@ -10,24 +10,29 @@ import android.util.Log;
 import android.view.Display;
 
 public class ScreenMonitor extends BroadcastReceiver {
+    private final MonitorLibrary monitorLibrary;
+
+    public ScreenMonitor(MonitorLibrary monitorLibrary){
+        this.monitorLibrary = monitorLibrary;
+    }
 
     //Record current screen state in MonitorLibrary
     public void startTracking(Context context){
-        MonitorLibrary.setScreenOff();
-        MonitorLibrary.resetScreenCounter();
+        monitorLibrary.setScreenOff();
+        monitorLibrary.resetScreenCounter();
 
         if(Build.VERSION.SDK_INT >= 20) {
             DisplayManager dm = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
             for (Display display : dm.getDisplays()) {
                 if (display.getState() != Display.STATE_OFF) {
-                    MonitorLibrary.setScreenOn();
+                    monitorLibrary.setScreenOn();
                     break;
                 }
             }
         } else {
             PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
             if(powerManager.isScreenOn()){
-                MonitorLibrary.setScreenOn();
+                monitorLibrary.setScreenOn();
             }
         }
     }
@@ -35,11 +40,11 @@ public class ScreenMonitor extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if(Intent.ACTION_SCREEN_ON.equals(intent.getAction())){
-            MonitorLibrary.setScreenOn();
+            monitorLibrary.setScreenOn();
             Log.d("Screen Monitor", "Screen on");
         }
         else{
-            MonitorLibrary.setScreenOff();
+            monitorLibrary.setScreenOff();
             Log.d("Screen Monitor", "Screen off");
         }
     }

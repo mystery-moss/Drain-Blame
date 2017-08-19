@@ -10,8 +10,6 @@ import java.util.ArrayList;
 
 import moss.mystery.energymonitor.R;
 import moss.mystery.energymonitor.classifier.ClassifierLibrary;
-import moss.mystery.energymonitor.processes.ProcessInfo;
-import moss.mystery.energymonitor.processes.ProcessLibrary;
 
 public class AppListActivity extends AppCompatActivity {
 
@@ -21,8 +19,8 @@ public class AppListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_app_list);
 
 //        //TEMPORARY for testing
-//        ProcessLibrary.parseProcs(0);
-//        ProcessInfo[] apps = ProcessLibrary.startNewSample();
+//        ProcessHandler.parseProcs(0);
+//        ActiveApp[] apps = ProcessHandler.startNewSample();
 
         //Args are context, layout, the array to take data from
         AppArrayAdapter adapter = new AppArrayAdapter(this, ClassifierLibrary.classifiedApps);

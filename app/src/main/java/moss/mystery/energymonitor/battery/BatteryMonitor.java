@@ -1,12 +1,11 @@
-package moss.mystery.energymonitor.monitors;
+package moss.mystery.energymonitor.battery;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.BatteryManager;
-import android.util.Log;
 
-import moss.mystery.energymonitor.processes.ProcessLibrary;
+import moss.mystery.energymonitor.monitors.MonitorLibrary;
 
 //NB: Receiver should not be registered until after MonitorLibrary is initialised!
 
@@ -15,9 +14,14 @@ public class BatteryMonitor extends BroadcastReceiver {
     private boolean charging = false;
     private int previousLevel = -1;
     private boolean populated = false;
+    private MonitorLibrary monitorLibrary;
 
     public void restart(){
         startup = true;
+    }
+
+    public BatteryMonitor(MonitorLibrary monitorLibrary){
+        this.monitorLibrary = monitorLibrary;
     }
 
     @Override
@@ -33,11 +37,11 @@ public class BatteryMonitor extends BroadcastReceiver {
             charging = newCharging;
             previousLevel = level;
             if(charging){
-                MonitorLibrary.chargerConnected();
+                monitorLibrary.chargerConnected();
             } else {
-                MonitorLibrary.chargerDisconnected();
+                monitorLibrary.chargerDisconnected();
             }
-            MonitorLibrary.setBatteryLevel(level);
+            monitorLibrary.setBatteryLevel(level);
             startup = false;
             return;
         }
@@ -50,20 +54,20 @@ public class BatteryMonitor extends BroadcastReceiver {
         //Charger has been connected
         if(newCharging){
             charging = true;
-            MonitorLibrary.chargerConnected();
+            monitorLibrary.chargerConnected();
             return;
         }
         //Charger has been disconnected (was previously charging, now is not)
         if(charging){
             charging = false;
-            MonitorLibrary.chargerDisconnected();
+            monitorLibrary.chargerDisconnected();
             //Cause next statement to fire, updating battery level here and in MonitorLibrary
             previousLevel = level + 1;
         }
         //Battery level has dropped
         if(level < previousLevel){
             previousLevel = level;
-            MonitorLibrary.setBatteryLevel(level);
+            monitorLibrary.setBatteryLevel(level);
         }
     }
 }

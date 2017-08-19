@@ -10,20 +10,23 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import moss.mystery.energymonitor.ApplicationGlobals;
 import moss.mystery.energymonitor.MainService;
 import moss.mystery.energymonitor.R;
 import moss.mystery.energymonitor.classifier.FileParsing;
 import moss.mystery.energymonitor.monitors.Interval;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
-import moss.mystery.energymonitor.processes.ProcessInfo;
-import moss.mystery.energymonitor.ui.MainActivity;
+import moss.mystery.energymonitor.processes.ActiveApp;
 
 public class OptionsActivity extends AppCompatActivity {
+    private ApplicationGlobals globals;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_options);
+
+        globals = ApplicationGlobals.get();
 
         Button toggle = (Button) findViewById(R.id.toggleMonitoring);
         if(MainActivity.runService){
@@ -36,7 +39,7 @@ public class OptionsActivity extends AppCompatActivity {
     public void writeFile(View view){
         TextView text = (TextView) findViewById(R.id.statusText);
 
-        if(FileParsing.writeFile(this)){
+        if(FileParsing.writeFile(this, globals.monitorLibrary)){
             text.setText("File written");
         }
         else{
@@ -48,7 +51,7 @@ public class OptionsActivity extends AppCompatActivity {
     public void readFile(View view){
         TextView text = (TextView) findViewById(R.id.statusText);
 
-        if(FileParsing.readFile(this)){
+        if(FileParsing.readFile(this, globals.monitorLibrary)){
             text.setText("File read");
         }
         else{
@@ -61,7 +64,7 @@ public class OptionsActivity extends AppCompatActivity {
 
         StringBuilder data = new StringBuilder();
 
-        ArrayList<Interval> intervals = MonitorLibrary.getIntervals();
+        ArrayList<Interval> intervals = globals.monitorLibrary.getIntervals();
         if(intervals == null){
             text.setText("No intervals recorded");
             return;
@@ -70,7 +73,7 @@ public class OptionsActivity extends AppCompatActivity {
         for(Interval interval : intervals){
             data.append("+++++++ ").append(interval.level).append(" - ").append(interval.level - 1);
             data.append(": ").append(interval.length / 1000).append(" - Screen ticks = ").append(interval.screenOnTime / 1000).append('\n');
-            for(ProcessInfo proc : interval.activeProcs){
+            for(ActiveApp proc : interval.activeProcs){
                 data.append(proc.name).append(": ").append(proc.ticks).append(", ");
             }
             data.append('\n');
@@ -80,7 +83,6 @@ public class OptionsActivity extends AppCompatActivity {
     }
 
     public void startInterval(View view){
-        MonitorLibrary.setBatteryLevel(MonitorLibrary.getBatteryLevel() - 1);
     }
 
     public void toggleMonitoring(View view){

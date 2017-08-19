@@ -10,16 +10,18 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
-import moss.mystery.energymonitor.monitors.BatteryMonitor;
+import moss.mystery.energymonitor.battery.BatteryMonitor;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
 import moss.mystery.energymonitor.monitors.ScreenMonitor;
-import moss.mystery.energymonitor.processes.ProcessLibrary;
+import moss.mystery.energymonitor.processes.ProcessHandler;
 import moss.mystery.energymonitor.ui.MainActivity;
 
 public class MainService extends Service {
     private static final String DEBUG = "MainService";
     private static final int NOTIFICATION_ID = 956231;
     private boolean running = false;
+
+    private ApplicationGlobals globals;
     private BatteryMonitor batteryMonitor;
     private ScreenMonitor screenMonitor;
 
@@ -50,8 +52,7 @@ public class MainService extends Service {
         startForeground(NOTIFICATION_ID, mBuilder.build());
 
         //Start monitor components
-        ProcessLibrary.reset();
-        MonitorLibrary.startup();
+        globals = ApplicationGlobals.get();
 
         //Determine CPU threshold
         //TODO: Split this out into another thread?
@@ -63,14 +64,14 @@ public class MainService extends Service {
         Context context = getApplicationContext();
 
         //Register screen monitor
-        screenMonitor = new ScreenMonitor();
+        screenMonitor = new ScreenMonitor(globals.monitorLibrary);
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         context.registerReceiver(screenMonitor, new IntentFilter(filter));
         screenMonitor.startTracking(context);
 
         //Register battery level change receiver
-        batteryMonitor = new BatteryMonitor();
+        batteryMonitor = new BatteryMonitor(globals.monitorLibrary);
         context.registerReceiver(batteryMonitor, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
         Log.d(DEBUG, "Service started");
@@ -94,7 +95,7 @@ public class MainService extends Service {
             Log.d("MainActivity", "Receivers not registered: " + e);
         }
         
-        MonitorLibrary.shutdown();
+        globals.monitorLibrary.shutdown();
 
         Log.d(DEBUG, "Service shutting down");
     }

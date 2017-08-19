@@ -8,22 +8,24 @@ import android.view.View;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
+import moss.mystery.energymonitor.ApplicationGlobals;
 import moss.mystery.energymonitor.MainService;
 import moss.mystery.energymonitor.R;
-import moss.mystery.energymonitor.classifier.ClassifiedApp;
 import moss.mystery.energymonitor.classifier.ClassifierLibrary;
 import moss.mystery.energymonitor.monitors.Interval;
 import moss.mystery.energymonitor.monitors.MonitorLibrary;
-import moss.mystery.energymonitor.processes.ProcessInfo;
-import moss.mystery.energymonitor.processes.ProcessLibrary;
+import moss.mystery.energymonitor.processes.ActiveApp;
+import moss.mystery.energymonitor.processes.ProcessHandler;
 
 public class MainActivity extends AppCompatActivity {
     private static final String DEBUG = "MainActivity";
+    private static ApplicationGlobals globals;
     public static boolean runService = true;
 
+    //TODO: Hmmmm
     public static Context appContext = null;
+
 
     @Override
     //Perform checks and setup
@@ -33,8 +35,10 @@ public class MainActivity extends AppCompatActivity {
 
         appContext = getApplicationContext();
 
+        globals = ApplicationGlobals.get();
+
         //Check permissions
-        if(!ProcessLibrary.checkPermission()){
+        if(!ProcessHandler.checkPermission()){
             //TODO: Open a popup telling the user that the app will not work
             TextView box = (TextView) findViewById(R.id.textBox);
             box.setText("ERROR: Cannot read process state [Root privileges required in Android 7+]");
@@ -47,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         TextView box = (TextView) findViewById(R.id.textBox);
-        box.setText("CPU Threshold value = " + MonitorLibrary.threshold);
+        box.setText("CPU Threshold value = ... I don't know, it's not static anymore");
     }
 
     @Override
@@ -73,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         StringBuilder info = new StringBuilder();
         info.append("CURRENT TIMESTAMP: ").append(System.currentTimeMillis()).append("\nINTERVALS:\n");
 
-        ArrayList<Interval> intervals = MonitorLibrary.getIntervals();
+        ArrayList<Interval> intervals = globals.monitorLibrary.getIntervals();
         if(intervals == null){
             box.setText("No intervals recorded");
             return;
@@ -83,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         for(Interval interval : intervals){
             info.append("+++++++ ").append(interval.level).append(" - ").append(interval.level - 1);
             info.append(": ").append(interval.length / 1000).append(" - Screen ticks = ").append(interval.screenOnTime / 1000).append('\n');
-            for(ProcessInfo proc : interval.activeProcs){
+            for(ActiveApp proc : interval.activeProcs){
                 info.append(proc.name).append(", ");
             }
             info.append('\n');
@@ -91,14 +95,6 @@ public class MainActivity extends AppCompatActivity {
 
         box.setText(info);
     }
-
-    //TODO: Fix!!
-    public void reset(View view){
-        MonitorLibrary.clearIntervals();
-        MonitorLibrary.startup();
-    }
-
-
 
     public void parseIntervals(View view){
         TextView box = (TextView) findViewById(R.id.textBox);
@@ -110,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
     public void categorise(View view){
         TextView box = (TextView) findViewById(R.id.textBox);
 
-        ClassifierLibrary.classify();
+        ClassifierLibrary.classify(globals.monitorLibrary);
 
         box.setText("Observed processes categorised");
     }
@@ -121,10 +117,10 @@ public class MainActivity extends AppCompatActivity {
 //        long start = System.currentTimeMillis();
 //        StringBuilder procs = new StringBuilder("PROCESSES:\n");
 //
-//        ProcessLibrary.parseProcs();
+//        ProcessHandler.parseProcs();
 //
-//        for(String key : ProcessLibrary.processes.keySet()){
-//            Process proc = ProcessLibrary.processes.get(key);
+//        for(String key : ProcessHandler.processes.keySet()){
+//            Process proc = ProcessHandler.processes.get(key);
 //            procs.append(key).append(" - ").append(proc.prevTicks).append('\n');
 //        }
 //

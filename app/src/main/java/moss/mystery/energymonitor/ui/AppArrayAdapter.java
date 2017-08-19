@@ -1,6 +1,5 @@
 package moss.mystery.energymonitor.ui;
 
-import android.app.ListActivity;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -15,7 +14,6 @@ import java.util.ArrayList;
 
 import moss.mystery.energymonitor.R;
 import moss.mystery.energymonitor.classifier.ClassifiedApp;
-import moss.mystery.energymonitor.processes.ProcessInfo;
 
 public class AppArrayAdapter extends ArrayAdapter {
     private final LayoutInflater inflater;
