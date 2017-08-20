@@ -20,22 +20,25 @@ public class AppHandler {
         this.appContext = appContext;
     }
 
-    public App getApp(String name){
+    public App getApp(String processName){
         //Find ApplicationInfo associated with this name
         PackageManager pm = appContext.getPackageManager();
-        ApplicationInfo ai = getApplicationInfo(name, pm);
-        String label;
+        ApplicationInfo ai = getApplicationInfo(processName, pm);
 
-        //TODO: Special handling - want to record cmdline somewhere!
-        if(ai == null){
-            label = "Unknown";
+        String appName = null;  //'Official' name of app
+        String label;           //Key in hashmap
+
+        //If ai cannot be found for this process, use processName as its ID
+        if(ai == null) {
+            label = processName;
         } else {
-            label = (String) pm.getApplicationLabel(ai);
+            appName = (String) pm.getApplicationLabel(ai);
+            label = appName;
         }
 
         App app = apps.get(label);
         if(app == null){
-            app = new App(label);
+            app = new App(appName, processName);
             apps.put(label, app);
         }
         return app;

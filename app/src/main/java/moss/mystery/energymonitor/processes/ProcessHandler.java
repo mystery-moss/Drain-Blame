@@ -67,14 +67,8 @@ public class ProcessHandler {
 
                 Process proc = processes.get(name);
                 //If process not already recorded, add it to store
-                if(proc == null){
-                    if(firstSample){
-                        //Handle special case (cannot know when ticks occurred)
-                        processes.put(name, new Process(time, name, appHandler, 0));
-                    } else {
-                        //All ticks occurred in this interval
-                        processes.put(name, new Process(time, name, appHandler));
-                    }
+                if(proc == null) {
+                    processes.put(name, new Process(time, name, appHandler, firstSample));
                 //Else update elapsed ticks
                 } else {
                     proc.updateTicks(time);
@@ -98,14 +92,12 @@ public class ProcessHandler {
             if (reader != null) {
                 try {
                     reader.close();
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
             }
         }
 
-        if(name == null){
-            return null;
-        }
-        return name.trim();
+        return name == null ? null : name.trim();
     }
 
     private static CPUTicks getTicks(int pid){
