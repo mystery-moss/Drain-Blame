@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         globals = ApplicationGlobals.get(getApplicationContext());
 
         //Check permissions
-        if(!ProcessHandler.checkPermission()){
+        if(!ProcessHandler.noReadPermission()){
             //TODO: Open a popup telling the user that the app will not work
             TextView box = (TextView) findViewById(R.id.textBox);
             box.setText("ERROR: Cannot read process state [Root privileges required in Android 7+]");

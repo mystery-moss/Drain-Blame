@@ -26,36 +26,28 @@ public class ProcessHandler {
     private static final String STAT = "/proc/%d/stat";
     private static final String DEBUG = "ProcessHandler";
 
-    private boolean firstSample = true;          //Flag for handling special case
-    private HashMap<String, Process> processes;
-    private AppHandler appHandler;
+    private final HashMap<String, Process> processes;
+    private final AppHandler appHandler;
+    private boolean firstSample; //Flag for handling special case
 
-    public ProcessHandler(AppHandler _appHandler){
-        processes = new HashMap<>();
-        firstSample = true;
-        appHandler = _appHandler;
+    public ProcessHandler(AppHandler appHandler){
+        this.processes = new HashMap<>();
+        this.firstSample = true;
+        this.appHandler = appHandler;
     }
 
     //Tidy up process list
     public void reset(){
-        //TODO: Is it more efficient to empty the existing hashmap?
-        processes = new HashMap<>();
+        processes.clear();
         firstSample = true;
     }
 
-    //TODO: Look into optimisations here, as this will run regularly and takes the longest
-    //Store a list of all files in directory, flag saying whether or not they are valid
-    //If a new file is not in the list, check to see if valid
-    //If a file in the list is no longer present in directory, remove from list
-    //Edge case: Unreadable dir gets replaced by readable one with same name within one sample
-    //Workaround: Refresh entire list every set number of samples, hope it wasn't important
-    //Would need benchmarks to justify making this change
     public void parseProcs(long threshold){
         Log.d(DEBUG, "Parsing processes");
         //Parse /proc directory
         File[] files = new File(PROC).listFiles();
         for (File file : files) {
-            if (file.isDirectory()) { //TODO: TEST - If file no longer exists, this just returns false and all is well
+            if (file.isDirectory()) {
                 int pid;
                 try {
                     pid = Integer.parseInt(file.getName());
@@ -137,7 +129,7 @@ public class ProcessHandler {
             return null;
         }
 
-        String[] fields = line.split(" "); //TODO: Test that this works consistently, vs regex for multiple spaces
+        String[] fields = line.split("\\s+");
         long utime = Long.parseLong(fields[13]);
         long stime = Long.parseLong(fields[14]);
         long start = Long.parseLong(fields[21]);
@@ -145,9 +137,28 @@ public class ProcessHandler {
         return new CPUTicks(utime + stime, start);
     }
 
-    //TODO: This.
     //Check whether we are allowed to read information in /proc
-    public static boolean checkPermission(){
-        return true;
+    //Lifted straight from AndroidProcesses - more info available there
+    public static boolean noReadPermission() {
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader("/proc/mounts"));
+            for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                String[] columns = line.split("\\s+");
+                if (columns.length == 6 && columns[1].equals("/proc")) {
+                    return columns[3].contains("hidepid=1") || columns[3].contains("hidepid=2");
+                }
+            }
+        } catch (IOException e) {
+            Log.d(DEBUG, "Error reading /proc/mounts. Checking if UID 'readproc' exists.");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException ignored) {
+                }
+            }
+        }
+        return android.os.Process.getUidForName("readproc") == 3009;
     }
 }
