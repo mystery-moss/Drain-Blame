@@ -30,13 +30,13 @@ public class FileParsing {
     }
 
     //Write data file to external storage
-    public static boolean writeFile(Context context, IntervalHandler monitorLibrary){
+    public static boolean writeFile(Context context, IntervalHandler intervalHandler){
         Log.d(DEBUG, "Writing intervals to file");
         if(!checkStorage()){
             return false;
         }
 
-        ArrayList<Interval> intervals = monitorLibrary.getIntervals();
+        ArrayList<Interval> intervals = intervalHandler.getIntervals();
         //Don't write if no intervals recorded
         if(intervals == null || intervals.size() == 0) {
             Log.d(DEBUG, "No intervals recorded, not writing to file");

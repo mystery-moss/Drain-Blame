@@ -29,9 +29,9 @@ public class OptionsActivity extends AppCompatActivity {
 
         Button toggle = (Button) findViewById(R.id.toggleMonitoring);
         if(globals.serviceEnabled){
-            toggle.setText("Stop Monitoring");
+            toggle.setText("Monitor Off");
         } else {
-            toggle.setText("Start Monitoring");
+            toggle.setText("Monitor On");
         }
     }
 
@@ -58,60 +58,17 @@ public class OptionsActivity extends AppCompatActivity {
         }
     }
 
-    public void cpuTicks(View view){
-        TextView text = (TextView) findViewById(R.id.statusText);
-
-        StringBuilder data = new StringBuilder();
-
-        ArrayList<Interval> intervals = globals.intervalHandler.getIntervals();
-        if(intervals == null){
-            text.setText("No intervals recorded");
-            return;
-        }
-
-        for(Interval interval : intervals){
-            data.append("+++++++ ").append(interval.level).append(" - ").append(interval.level - 1);
-            data.append(": ").append(interval.length / 1000).append(" - Screen ticks = ").append(interval.screenOnTime / 1000).append('\n');
-            for(App proc : interval.activeApps){
-                data.append(proc.name).append(": ").append(proc.ticks).append(", ");
-            }
-            data.append('\n');
-        }
-
-        text.setText(data);
-    }
-
-    public void startInterval(View view){
-    }
-
     public void toggleMonitoring(View view){
         Button toggle = (Button) findViewById(R.id.toggleMonitoring);
 
         if(globals.serviceEnabled){
             globals.serviceEnabled = false;
             stopService(new Intent(this, MainService.class));
-            toggle.setText("Start Monitoring");
+            toggle.setText("Monitor On");
         } else {
             globals.serviceEnabled = true;
             startService(new Intent(this, MainService.class));
-            toggle.setText("Stop Monitoring");
-        }
-    }
-
-    static long rx = 0;
-    static long tx = 0;
-    public void network(View view){
-        TextView text = (TextView) findViewById(R.id.statusText);
-        long rxnew = TrafficStats.getTotalRxBytes();
-        long txnew = TrafficStats.getTotalTxBytes();
-
-        if(rxnew < rx || txnew < tx){
-            text.setText("Total has decreased!");
-        }
-        else {
-            rx = rxnew;
-            tx = txnew;
-            text.setText("Receive total: " + rx + "\nSend total: " + tx);
+            toggle.setText("Monitor Off");
         }
     }
 }

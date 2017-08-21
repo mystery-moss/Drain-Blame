@@ -13,20 +13,28 @@ import moss.mystery.energymonitor.intervals.IntervalHandler;
 
 //TODO: Make sure I'm not in a position where 'intervals' can be updated while I'm using it!
     //Ok, currently using a 'clone' which should be ok
-public class ClassifierLibrary {
-    private static final String DEBUG = "ClassifierLibrary";
+public class Classifier {
+    private static final String DEBUG = "Classifier";
     private static final double thresholdShort = 0.6;
     private static final double thresholdLong = 0.6;
 
-    private static long cpuThreshold;
-    private static long shortint;
-    private static long longint;
+    private long cpuThreshold;
+    private long shortint;
+    private long longint;
 
-    public static ArrayList<ClassifiedApp> classifiedApps = new ArrayList<ClassifiedApp>();
+    private ArrayList<ClassifiedApp> classifiedApps;
+
+    public Classifier(){
+        classifiedApps = new ArrayList<>();
+    }
+
+    public ClassifiedApp[] getClassifiedApps(){
+        return classifiedApps.toArray(new ClassifiedApp[0]);
+    }
 
     //TODO: Gracefully handle too few intervals to do any useful work (including 0)
-    public static void classify(IntervalHandler monitorLibrary){
-        ArrayList<Interval> intervals = (ArrayList<Interval>) monitorLibrary.getIntervals().clone();
+    public void classify(IntervalHandler intervalHandler){
+        ArrayList<Interval> intervals = (ArrayList<Interval>) intervalHandler.getIntervals().clone();
 
         setCpuThreshold();
         setBatteryThresholds(intervals);
@@ -143,7 +151,7 @@ public class ClassifierLibrary {
         }
     }
 
-    private static void removeHighDrain(String target, ArrayList<Interval> intervals){
+    private void removeHighDrain(String target, ArrayList<Interval> intervals){
         ArrayList<Interval> toRemove = new ArrayList<>();
 
         for(Interval interval : intervals){
@@ -163,11 +171,11 @@ public class ClassifierLibrary {
     }
 
 
-    private static void setCpuThreshold(){
+    private void setCpuThreshold(){
         cpuThreshold = 200;
     }
 
-    private static void setBatteryThresholds(ArrayList<Interval> intervals){
+    private void setBatteryThresholds(ArrayList<Interval> intervals){
         //Extract all interval lengths
         int size = intervals.size();
 

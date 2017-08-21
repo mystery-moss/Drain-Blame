@@ -3,6 +3,7 @@ package moss.mystery.energymonitor;
 import android.content.Context;
 
 import moss.mystery.energymonitor.apps.AppHandler;
+import moss.mystery.energymonitor.classifier.Classifier;
 import moss.mystery.energymonitor.intervals.IntervalHandler;
 import moss.mystery.energymonitor.processes.ProcessHandler;
 
@@ -15,6 +16,7 @@ public class ApplicationGlobals {
     public IntervalHandler intervalHandler;
     public ProcessHandler processHandler;
     public AppHandler appHandler;
+    public Classifier classifier;
     public Context appContext;
     public boolean serviceEnabled;
 
@@ -23,6 +25,7 @@ public class ApplicationGlobals {
         this.appHandler = new AppHandler(appContext);
         this.processHandler = new ProcessHandler(appHandler);
         this.intervalHandler = new IntervalHandler(processHandler, appHandler);
+        this.classifier = new Classifier();
         //TODO: Potentially record user preference for this, read it here
         this.serviceEnabled = true;
     }
