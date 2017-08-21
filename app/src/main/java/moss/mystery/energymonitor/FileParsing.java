@@ -1,4 +1,4 @@
-package moss.mystery.energymonitor.classifier;
+package moss.mystery.energymonitor;
 
 import android.content.Context;
 import android.os.Environment;
@@ -11,8 +11,8 @@ import java.io.FileReader;
 import java.util.ArrayList;
 
 import moss.mystery.energymonitor.apps.App;
-import moss.mystery.energymonitor.monitors.Interval;
-import moss.mystery.energymonitor.monitors.MonitorLibrary;
+import moss.mystery.energymonitor.intervals.Interval;
+import moss.mystery.energymonitor.intervals.IntervalHandler;
 
 public class FileParsing {
     //TODO: Look into making error catching here more robust? E.g. have closing files in 'finally' block rather than within the try?
@@ -30,7 +30,7 @@ public class FileParsing {
     }
 
     //Write data file to external storage
-    public static boolean writeFile(Context context, MonitorLibrary monitorLibrary){
+    public static boolean writeFile(Context context, IntervalHandler monitorLibrary){
         Log.d(DEBUG, "Writing intervals to file");
         if(!checkStorage()){
             return false;
@@ -61,7 +61,7 @@ public class FileParsing {
         return true;
     }
 
-    public static boolean readFile(Context context, MonitorLibrary monitorLibrary){
+    public static boolean readFile(Context context, IntervalHandler monitorLibrary){
         Log.d(DEBUG, "Reading intervals from file");
         if(!checkStorageReadOnly()){
             return false;
@@ -96,7 +96,7 @@ public class FileParsing {
 
             data.append(x.level).append(' ').append(x.length).append(' ').append(x.screenOnTime).append(' ').append(x.networkBytes);
 
-            for (App p : x.activeProcs) {
+            for (App p : x.activeApps) {
                 data.append(' ').append(p.name).append(' ').append(p.ticks);
             }
             data.append('\n');
@@ -107,7 +107,7 @@ public class FileParsing {
 
     //Read from string to 'Interval' store
     //Note that this adds to existing intervals, so don't repeatedly re-read same file
-    private static void parseFromString(String string, MonitorLibrary monitorLibrary){
+    private static void parseFromString(String string, IntervalHandler monitorLibrary){
         String[] data = string.split(" ");
 
         //Check overall formatting correct
@@ -128,7 +128,7 @@ public class FileParsing {
 
         if(numProcs > 0){
             for(int i = 0; i < numProcs; i++){
-                activeProcs[i] = new App(data[(2 * i) + 4], Long.parseLong(data[(2 * i) + 5]));
+                activeProcs[i] = new App(data[(2 * i) + 4], Long.parseLong(data[(2 * i) + 5]), false);
             }
         }
 

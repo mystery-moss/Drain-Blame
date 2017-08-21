@@ -14,7 +14,7 @@ import moss.mystery.energymonitor.MainService;
 import moss.mystery.energymonitor.R;
 import moss.mystery.energymonitor.apps.App;
 import moss.mystery.energymonitor.classifier.ClassifierLibrary;
-import moss.mystery.energymonitor.monitors.Interval;
+import moss.mystery.energymonitor.intervals.Interval;
 import moss.mystery.energymonitor.processes.ProcessHandler;
 
 public class MainActivity extends AppCompatActivity {
@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         StringBuilder info = new StringBuilder();
         info.append("CURRENT TIMESTAMP: ").append(System.currentTimeMillis()).append("\nINTERVALS:\n");
 
-        ArrayList<Interval> intervals = globals.monitorLibrary.getIntervals();
+        ArrayList<Interval> intervals = globals.intervalHandler.getIntervals();
         if(intervals == null){
             box.setText("No intervals recorded");
             return;
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         for(Interval interval : intervals){
             info.append("+++++++ ").append(interval.level).append(" - ").append(interval.level - 1);
             info.append(": ").append(interval.length / 1000).append(" - Screen ticks = ").append(interval.screenOnTime / 1000).append('\n');
-            for(App proc : interval.activeProcs){
+            for(App proc : interval.activeApps){
                 info.append(proc.name).append(", ");
             }
             info.append('\n');
@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
     public void categorise(View view){
         TextView box = (TextView) findViewById(R.id.textBox);
 
-        ClassifierLibrary.classify(globals.monitorLibrary);
+        ClassifierLibrary.classify(globals.intervalHandler);
 
         box.setText("Observed processes categorised");
     }

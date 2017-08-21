@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import moss.mystery.energymonitor.ApplicationGlobals;
 import moss.mystery.energymonitor.MainService;
 import moss.mystery.energymonitor.R;
-import moss.mystery.energymonitor.classifier.FileParsing;
-import moss.mystery.energymonitor.monitors.Interval;
+import moss.mystery.energymonitor.FileParsing;
+import moss.mystery.energymonitor.intervals.Interval;
 import moss.mystery.energymonitor.apps.App;
 
 public class OptionsActivity extends AppCompatActivity {
@@ -38,7 +38,7 @@ public class OptionsActivity extends AppCompatActivity {
     public void writeFile(View view){
         TextView text = (TextView) findViewById(R.id.statusText);
 
-        if(FileParsing.writeFile(this, globals.monitorLibrary)){
+        if(FileParsing.writeFile(this, globals.intervalHandler)){
             text.setText("File written");
         }
         else{
@@ -50,7 +50,7 @@ public class OptionsActivity extends AppCompatActivity {
     public void readFile(View view){
         TextView text = (TextView) findViewById(R.id.statusText);
 
-        if(FileParsing.readFile(this, globals.monitorLibrary)){
+        if(FileParsing.readFile(this, globals.intervalHandler)){
             text.setText("File read");
         }
         else{
@@ -63,7 +63,7 @@ public class OptionsActivity extends AppCompatActivity {
 
         StringBuilder data = new StringBuilder();
 
-        ArrayList<Interval> intervals = globals.monitorLibrary.getIntervals();
+        ArrayList<Interval> intervals = globals.intervalHandler.getIntervals();
         if(intervals == null){
             text.setText("No intervals recorded");
             return;
@@ -72,7 +72,7 @@ public class OptionsActivity extends AppCompatActivity {
         for(Interval interval : intervals){
             data.append("+++++++ ").append(interval.level).append(" - ").append(interval.level - 1);
             data.append(": ").append(interval.length / 1000).append(" - Screen ticks = ").append(interval.screenOnTime / 1000).append('\n');
-            for(App proc : interval.activeProcs){
+            for(App proc : interval.activeApps){
                 data.append(proc.name).append(": ").append(proc.ticks).append(", ");
             }
             data.append('\n');

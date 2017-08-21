@@ -20,55 +20,48 @@ public class AppHandler {
         this.appContext = appContext;
     }
 
+    //Return app reference based on /proc/[pid]/cmdline, creating if none exists
     public App getApp(String processName){
         //Find ApplicationInfo associated with this name
         PackageManager pm = appContext.getPackageManager();
         ApplicationInfo ai = getApplicationInfo(processName, pm);
-
-        String appName = null;  //'Official' name of app
-        String label;           //Key in hashmap
+        String name;
 
         //If ai cannot be found for this process, use processName as its ID
         if(ai == null) {
-            label = processName;
+            name = processName;
         } else {
-            appName = (String) pm.getApplicationLabel(ai);
-            label = appName;
+            name = (String) pm.getApplicationLabel(ai);
         }
 
-        App app = apps.get(label);
+        App app = apps.get(name);
         if(app == null){
-            app = new App(appName, processName);
-            apps.put(label, app);
+            app = new App(name, ai == null);
+            apps.put(name, app);
         }
         return app;
     }
 
-    //Return a list of apps which were active in the current sample, and reset all activities to 0
-    public App[] startNewSample(){
+    //Return array of apps that were active in the current sample, and reset all activity ticks to 0
+    public App[] startNewSample(long threshold){
         ArrayList<App> activeApps = new ArrayList<>();
 
         for(String key : apps.keySet()){
             App app = apps.get(key);
-            if(app.ticks > 0){
+            if(app.ticks > threshold){
                 activeApps.add(app);
-                app.ticks = 0;
             }
+            app.ticks = 0;
         }
 
         return activeApps.toArray(new App[0]);
     }
 
-
-    //TODO: Maybe time as well??
-    //Wait, is this needed? What for? Shouldn't be...
-    public void addTicks(String name, Long ticks){
-        App app = apps.get(name);
-
-        if(app == null){
-            //TODO: Can this happen? What do?
-        } else {
-            app.addTicks(ticks);
+    //Reset all app ticks to 0
+    public void resetTicks(){
+        for(String key : apps.keySet()){
+            App app = apps.get(key);
+            app.ticks = 0;
         }
     }
 
@@ -103,7 +96,7 @@ public class AppHandler {
             try {
                 ai = pm.getApplicationInfo(str, 0);
                 return ai;
-            } catch (final PackageManager.NameNotFoundException ignored) {
+            } catch (PackageManager.NameNotFoundException ignored) {
             }
 
             int i = str.length() - 1;
@@ -116,7 +109,7 @@ public class AppHandler {
                     try {
                         ai = pm.getApplicationInfo(str.substring(0, i), 0);
                         return ai;
-                    } catch (final PackageManager.NameNotFoundException ignored) {
+                    } catch (PackageManager.NameNotFoundException ignored) {
                     }
                 }
                 --i;

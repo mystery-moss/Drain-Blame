@@ -1,6 +1,5 @@
-package moss.mystery.energymonitor.monitors;
+package moss.mystery.energymonitor.intervals;
 
-import android.app.AlarmManager;
 import android.net.TrafficStats;
 import android.os.Handler;
 import android.util.Log;
@@ -12,39 +11,30 @@ import moss.mystery.energymonitor.apps.AppHandler;
 import moss.mystery.energymonitor.ui.MainActivity;
 import moss.mystery.energymonitor.processes.ProcessHandler;
 
-public class MonitorLibrary {
+public class IntervalHandler {
     private static final String DEBUG = "Monitor Library";
-    //TODO: TEMP
-    public static int debug = 0;
+    private final ProcessHandler processHandler;
+    private final AppHandler appHandler;
 
-    private ProcessHandler processHandler;
-    private AppHandler appHandler;
-
-    //Battery
     private int batteryLevel;
     private boolean charging;
 
-    //Screen
     private boolean screenOn;
-    private long screenStart;
-    private long screenOnTime;
+    private long screenOnStart;
+    private long screenOnDuration;
 
-    //Network
-    private long rx;
-    private long tx;
+    private long netRx;
+    private long netTx;
 
-    //Interval
     private boolean firstInterval;
     private long intervalStart;
-    private ArrayList<Interval> intervals;
-    private AlarmManager alarm;
-    private Handler handler;
-    private RunnablePoll runnablePoll;
-    public long threshold = 50;           //CPU tick threshold to consider a process as 'active'
+    private final ArrayList<Interval> intervals;
+    private final Handler handler;
+    private ProcessPoller processPoller;
+    private long threshold = 50;           //CPU tick threshold to consider a process as 'active'
 
     //Control=======================================================================================
-    public MonitorLibrary(ProcessHandler processHandler, AppHandler appHandler){
-        Log.d(DEBUG, "Startup");
+    public IntervalHandler(ProcessHandler processHandler, AppHandler appHandler){
         this.processHandler = processHandler;
         this.appHandler = appHandler;
         handler = new Handler();
@@ -64,32 +54,31 @@ public class MonitorLibrary {
     public void setThreshold(long t){
         threshold = t;
     }
+
     //Battery tracking==============================================================================
-    public int getBatteryLevel(){
-        return batteryLevel;
-    }
-    public void setBatteryLevel(int level) {
-        if(level < batteryLevel){
+    public void setBatteryLevel(int newLevel) {
+        if(newLevel < batteryLevel){
             newInterval(System.currentTimeMillis(), false);
         }
-        batteryLevel = level;
+        batteryLevel = newLevel;
     }
+
     public void chargerConnected(){
         charging = true;
         stopPolling();
-        //TODO: Double check that this is the best place for this ***********************************************
+        //Clear processes and app ticks
         processHandler.reset();
+        appHandler.resetTicks();
         firstInterval = true;
         Log.d(DEBUG, "Charger connected");
     }
+
     public void chargerDisconnected(){
         charging = false;
-        //TODO: As above! ****************************************
+        //Start new interval with special case flag - record processes but don't record details of
+        //interval, because first interval after charger disconnect may be of abnormal length
         newInterval(System.currentTimeMillis(), true);
         Log.d(DEBUG, "Charger disconnected");
-    }
-    public boolean isCharging(){
-        return charging;
     }
 
     //TODO: Refactor these two out into a separate, exapdable resource tracking thing
@@ -97,28 +86,31 @@ public class MonitorLibrary {
     public void setScreenOn(){
         if(!screenOn) {
             screenOn = true;
-            screenStart = System.currentTimeMillis();
+            screenOnStart = System.currentTimeMillis();
         }
     }
+
     public void setScreenOff(){
         if(screenOn) {
             screenOn = false;
-            screenOnTime += System.currentTimeMillis() - screenStart;
+            screenOnDuration += System.currentTimeMillis() - screenOnStart;
         }
     }
+
     public void resetScreenCounter(){
-        screenOnTime = 0;
+        screenOnDuration = 0;
         if(screenOn){
-            screenStart = System.currentTimeMillis();
+            screenOnStart = System.currentTimeMillis();
         }
     }
-    public long getScreenOnTime() {
+
+    public long getScreenOnDuration() {
         if(screenOn){
-            screenOnTime += System.currentTimeMillis() - screenStart;
+            screenOnDuration += System.currentTimeMillis() - screenOnStart;
         }
-        return screenOnTime;
+        return screenOnDuration;
     }
-    //TODO: Currently need to remember to call 'resetScreenCounter' - better to call it when 'getScreenOnTime()' is called, if this is appropriate behaviour
+    //TODO: Currently need to remember to call 'resetScreenCounter' - better to call it when 'getScreenOnDuration()' is called, if this is appropriate behaviour
         //As below for network!
 
     //Network tracking==============================================================================
@@ -126,45 +118,42 @@ public class MonitorLibrary {
         long rxnew = TrafficStats.getTotalRxBytes();
         long txnew = TrafficStats.getTotalTxBytes();
 
-        if(rxnew - rx < 0 || txnew - tx < 0){
-            ++debug;
+        if(rxnew - netRx < 0 || txnew - netTx < 0){
             return 0;
         }
 
-        return (rxnew - rx) + (txnew - tx);
+        return (rxnew - netRx) + (txnew - netTx);
     }
 
     private void resetNetworkBytes(){
-        rx = TrafficStats.getTotalRxBytes();
-        tx = TrafficStats.getTotalTxBytes();
+        netRx = TrafficStats.getTotalRxBytes();
+        netTx = TrafficStats.getTotalTxBytes();
     }
 
     //Interval tracking=============================================================================
     public void clearIntervals(){
         intervals.clear();
     }
+
     public ArrayList<Interval> getIntervals(){
         return intervals;
     }
+
     public void populateInterval(Interval i){
         intervals.add(i);
     }
 
-    //TODO: SPECIAL CASE AS ABOVE DOUBEL CHECK PLEASE ************************************************
-    public void newInterval(long timestamp, boolean specialCase){
-        //Record previous interval (unless this is the first interval)
-        if(!firstInterval){
-            intervals.add(new Interval(batteryLevel, timestamp - intervalStart, getScreenOnTime(), getNetworkBytes(), appHandler.startNewSample()));
-            if(MainActivity.appContext != null) {
-                Toast toast = Toast.makeText(MainActivity.appContext, "BATTERY LEVEL DROPPED - " + (timestamp - intervalStart)/1000, Toast.LENGTH_LONG);
-                toast.show();
-            }
-        }
-        else{
+    private void newInterval(long timestamp, boolean specialCase){
+        //Don't record previous interval if there isn't one
+        if(firstInterval){
+            //If special case flag is set, the next interval will be the first 'official' one
             if(!specialCase) {
                 firstInterval = false;
             }
-            appHandler.startNewSample();
+            appHandler.resetTicks();
+        } else {
+            //Record previous interval
+            intervals.add(new Interval(batteryLevel, timestamp - intervalStart, getScreenOnDuration(), getNetworkBytes(), appHandler.startNewSample(threshold)));
         }
 
         resetScreenCounter();
@@ -177,10 +166,14 @@ public class MonitorLibrary {
     }
 
     private void stopPolling(){
-        try{
-            handler.removeCallbacks(runnablePoll);
-        } catch(Exception ignored){
-            Log.d(DEBUG, "Error removing 'runnablePoll' callbacks: " + ignored);
+        if(processPoller != null) {
+            try {
+                handler.removeCallbacks(processPoller);
+            } catch (Exception ignored) {
+            }
+            finally{
+               processPoller = null;
+            }
         }
 
 //        Intent intent = new Intent(context, AlarmReceiver.class);
@@ -193,18 +186,19 @@ public class MonitorLibrary {
 //        }
     }
 
-    private void startPolling(int interval){
-        if(interval < 1){
-            interval = 1;
+    private void startPolling(int pollRate){
+        if(pollRate < 1){
+            pollRate = 1;
         }
 
         //If poll rate is below 60 seconds, use a 'Runnable' task
-        if(interval < 60){
-            runnablePoll = new RunnablePoll(handler, threshold, interval, processHandler);
-            handler.post(runnablePoll);
+        if(pollRate < 60){
+            processPoller = new ProcessPoller(handler, pollRate, processHandler);
+            handler.post(processPoller);
         }
         //Else use an alarm
         else {
+            //TODO: Needs to receive a referenced to ProcessHandler so it can call parseProcs
 //        //Increase context capabilities?
 //        context = context.getApplicationContext();
 //

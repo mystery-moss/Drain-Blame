@@ -3,14 +3,18 @@ package moss.mystery.energymonitor.apps;
 //Information on process state within a battery interval
 
 public class App {
-    public String appName;      //Name from PackageManager, if known, else null
-    public String processName;  //Name of process, if app name is not known
+    public final String name;           //Name from PackageManager, if known, else null
+    public final boolean unknownApp;    //True if no app could be associated with this process
     public long ticks;
 
-    public App(String appName, String processName){
-        this.appName = appName;
-        this.processName = processName;
-        this.ticks = 0;
+    public App(String name, boolean unknownApp){
+        this(name, 0, unknownApp);
+    }
+
+    public App(String name, long ticks, boolean unknownApp){
+        this.name = name;
+        this.ticks = ticks;
+        this.unknownApp = unknownApp;
     }
 
     public void addTicks(long ticks){

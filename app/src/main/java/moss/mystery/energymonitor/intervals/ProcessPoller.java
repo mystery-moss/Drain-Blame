@@ -1,27 +1,25 @@
-package moss.mystery.energymonitor.monitors;
-
+package moss.mystery.energymonitor.intervals;
 
 import android.os.Handler;
 
-import moss.mystery.energymonitor.processes.Process;
 import moss.mystery.energymonitor.processes.ProcessHandler;
 
-public class RunnablePoll implements Runnable{
+//Periodically calls parseProcs()
+
+public class ProcessPoller implements Runnable{
     private final Handler handler;
-    private final Long threshold;
     private final int interval;
     private final ProcessHandler processHandler;
 
-    public RunnablePoll(Handler handler, Long threshold, int interval, ProcessHandler processHandler){
+    public ProcessPoller(Handler handler, int interval, ProcessHandler processHandler){
         this.handler = handler;
-        this.threshold = threshold;
         this.interval = interval * 1000;
         this.processHandler = processHandler;
     }
 
     @Override
     public void run(){
-        processHandler.parseProcs(threshold);
+        processHandler.parseProcs();
         handler.postDelayed(this, interval);
     }
 }

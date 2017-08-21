@@ -36,13 +36,12 @@ public class ProcessHandler {
         this.appHandler = appHandler;
     }
 
-    //Tidy up process list
     public void reset(){
         processes.clear();
         firstSample = true;
     }
 
-    public void parseProcs(long threshold){
+    public void parseProcs(){
         Log.d(DEBUG, "Parsing processes");
         //Parse /proc directory
         File[] files = new File(PROC).listFiles();

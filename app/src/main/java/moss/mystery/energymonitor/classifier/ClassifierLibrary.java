@@ -8,8 +8,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import moss.mystery.energymonitor.apps.App;
-import moss.mystery.energymonitor.monitors.Interval;
-import moss.mystery.energymonitor.monitors.MonitorLibrary;
+import moss.mystery.energymonitor.intervals.Interval;
+import moss.mystery.energymonitor.intervals.IntervalHandler;
 
 //TODO: Make sure I'm not in a position where 'intervals' can be updated while I'm using it!
     //Ok, currently using a 'clone' which should be ok
@@ -25,7 +25,7 @@ public class ClassifierLibrary {
     public static ArrayList<ClassifiedApp> classifiedApps = new ArrayList<ClassifiedApp>();
 
     //TODO: Gracefully handle too few intervals to do any useful work (including 0)
-    public static void classify(MonitorLibrary monitorLibrary){
+    public static void classify(IntervalHandler monitorLibrary){
         ArrayList<Interval> intervals = (ArrayList<Interval>) monitorLibrary.getIntervals().clone();
 
         setCpuThreshold();
@@ -35,19 +35,19 @@ public class ClassifierLibrary {
         //Remove any process in interval with ticks below CPU threshold
         for(Interval interval : intervals){
             ArrayList<App> pastThreshold = new ArrayList<App>();
-            for(App info : interval.activeProcs){
+            for(App info : interval.activeApps){
                 if(info.ticks >= cpuThreshold){
                     pastThreshold.add(info);
                 }
             }
-            interval.activeProcs = pastThreshold.toArray(new App[0]);
+            interval.activeApps = pastThreshold.toArray(new App[0]);
         }
 
         //PASS 0:
         //Remove any intervals with no active apps
         ArrayList<Interval> toRemove = new ArrayList<>();
         for(Interval interval : intervals){
-            if(interval.activeProcs.length == 0){
+            if(interval.activeApps.length == 0){
                 toRemove.add(interval);
             }
         }
@@ -64,12 +64,12 @@ public class ClassifierLibrary {
         //TODO: More efficient to just reset it?
         toRemove = new ArrayList<>();
         for(Interval interval : intervals){
-            if(interval.length < shortint && interval.activeProcs.length == 1){
+            if(interval.length < shortint && interval.activeApps.length == 1){
                 //If this app has not already been recorded, add to 'highDrain' list
-                String name = interval.activeProcs[0].name;
+                String name = interval.activeApps[0].name;
                 ClassifiedApp app = highDrain.get(name);
                 if(app == null) {
-                    highDrain.put(name, new ClassifiedApp(interval.activeProcs[0].name, "High", "High drain"));
+                    highDrain.put(name, new ClassifiedApp(interval.activeApps[0].name, "High", "High drain"));
                 }
 
                 toRemove.add(interval);
@@ -93,7 +93,7 @@ public class ClassifierLibrary {
         //Get list of unclassified apps [[[which are active in short intervals]]]:
         ArraySet<String> unclassified = new ArraySet<String>();
         for(Interval interval : intervals){
-            for(App proc : interval.activeProcs){
+            for(App proc : interval.activeApps){
                 if(highDrain.get(proc.name) == null) {
                     unclassified.add(proc.name);
                 }
@@ -105,7 +105,7 @@ public class ClassifierLibrary {
             int longactive = 0;
             int totalactive = 0;
             for(Interval interval : intervals){
-                for(App proc : interval.activeProcs){
+                for(App proc : interval.activeApps){
                     if(proc.name.equals(app)){
                         ++totalactive;
                         if(interval.length < shortint){
@@ -148,7 +148,7 @@ public class ClassifierLibrary {
 
         for(Interval interval : intervals){
             if(interval.length < shortint){
-                for(App proc : interval.activeProcs){
+                for(App proc : interval.activeApps){
                     if(proc.name.equals(target)){
                         toRemove.add(interval);
                         break;
