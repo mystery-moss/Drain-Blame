@@ -17,6 +17,7 @@ import moss.mystery.energymonitor.intervals.IntervalHandler;
 public class FileParsing {
     //TODO: Look into making error catching here more robust? E.g. have closing files in 'finally' block rather than within the try?
     private static final String DEBUG = "File Parsing";
+    private static final int VERSION = 6;
 
     //Check whether external storage can be written
     public static boolean checkStorage(){
@@ -73,7 +74,12 @@ public class FileParsing {
             File file = new File(path, "intervalData");
 
             BufferedReader read = new BufferedReader(new FileReader(file));
-            String line;
+            String line = read.readLine();
+            int version = Integer.parseInt(line);
+            if(version != VERSION){
+                Log.e(DEBUG, "Cannot read file - incompatible version - required " + VERSION + ", found " + version);
+                return false;
+            }
             while((line = read.readLine()) != null){
                 parseFromString(line, monitorLibrary);
             }
@@ -89,7 +95,8 @@ public class FileParsing {
     //Convert 'Interval' store to string
     private static String parseToString(ArrayList<Interval> intervals) {
         int size = intervals.size();
-        StringBuilder data = new StringBuilder(size + '\n');
+        StringBuilder data = new StringBuilder();
+        data.append(VERSION).append('\n');
 
         for (int i = 0; i < size; i++) {
             Interval x = intervals.get(i);

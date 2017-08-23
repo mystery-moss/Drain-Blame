@@ -1,9 +1,13 @@
 package moss.mystery.energymonitor.ui;
 
 import android.content.Intent;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -12,6 +16,8 @@ import moss.mystery.energymonitor.ApplicationGlobals;
 import moss.mystery.energymonitor.MainService;
 import moss.mystery.energymonitor.R;
 import moss.mystery.energymonitor.apps.App;
+import moss.mystery.energymonitor.classifier.ClassifiedApp;
+import moss.mystery.energymonitor.classifier.Classifier;
 import moss.mystery.energymonitor.intervals.Interval;
 import moss.mystery.energymonitor.processes.ProcessHandler;
 
@@ -24,21 +30,49 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         globals = ApplicationGlobals.get(getApplicationContext());
 
         //Check permissions
         if(ProcessHandler.noReadPermission()){
-            //TODO: Open a popup telling the user that the app will not work
-            TextView box = (TextView) findViewById(R.id.textBox);
-            box.setText("ERROR: Cannot read process state [Root privileges required in Android 7+]");
-            return;
+            //TODO: Make this work properly in final version
+            DialogFragment dialog = new ErrorDialog();
+            dialog.show(getSupportFragmentManager(), "permission_error");
         }
 
+
+
+        TextView enabled = (TextView) findViewById(R.id.monitorStatus);
         //Start service
         if(globals.serviceEnabled) {
             startService(new Intent(this, MainService.class));
+            enabled.setText(R.string.monitor_running);
+        } else {
+            enabled.setText(R.string.monitor_not_running);
+            //TODO: Add a button to start monitor?
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        //TODO: Split out into separate thread, show loading spinner!
+        Classifier classifier = new Classifier();
+
+        AppArrayAdapter adapter;
+
+        if(classifier.classify(globals.intervalHandler.getIntervals())){
+            //Populate view with classified apps
+            adapter = new AppArrayAdapter(this, globals.classifier.getClassifiedApps(), false);
+        } else {
+            //Populate view with message about lack of intervals
+            adapter = new AppArrayAdapter(this, new ClassifiedApp[1], true);
+        }
+
+        ListView listView = (ListView) findViewById(R.id.app_list);
+        listView.setAdapter(adapter);
     }
 
     @Override
@@ -48,34 +82,5 @@ public class MainActivity extends AppCompatActivity {
 
     public void options(View view){
         startActivity(new Intent(this, OptionsActivity.class));
-    }
-
-    public void listActivity(View view){
-        startActivity(new Intent(this, AppListActivity.class));
-    }
-
-    //========================DEBUGGING=METHODS==========================
-    public void listIntervals(View view){
-        TextView box = (TextView) findViewById(R.id.textBox);
-
-        StringBuilder info = new StringBuilder();
-        info.append("CURRENT TIMESTAMP: ").append(System.currentTimeMillis()).append("\nINTERVALS:\n");
-
-        ArrayList<Interval> intervals = globals.intervalHandler.getIntervals();
-        if(intervals == null){
-            box.setText("No intervals recorded");
-            return;
-        }
-
-        for(Interval interval : intervals){
-            info.append("+++++++ ").append(interval.level).append(" - ").append(interval.level - 1);
-            info.append(": ").append(interval.length / 1000).append(" - Screen ticks = ").append(interval.screenOnTime / 1000).append('\n');
-            for(App proc : interval.activeApps){
-                info.append(proc.name).append(": ").append(proc.ticks).append(", ");
-            }
-            info.append('\n');
-        }
-
-        box.setText(info);
     }
 }

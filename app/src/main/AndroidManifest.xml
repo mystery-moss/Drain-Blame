@@ -28,7 +28,6 @@
             android:exported="false" />
 
         <activity android:name=".ui.OptionsActivity" />
-        <activity android:name=".ui.AppListActivity" />
     </application>
 
 </manifest>
