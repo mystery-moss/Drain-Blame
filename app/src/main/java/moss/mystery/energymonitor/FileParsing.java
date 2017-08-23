@@ -1,22 +1,18 @@
-package moss.mystery.energymonitor.classifier;
+package moss.mystery.energymonitor;
 
 import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
-import android.util.StringBuilderPrinter;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.IOError;
-import java.nio.file.Files;
 import java.util.ArrayList;
 
-import moss.mystery.energymonitor.monitors.Interval;
-import moss.mystery.energymonitor.monitors.MonitorLibrary;
-import moss.mystery.energymonitor.processes.Process;
-import moss.mystery.energymonitor.processes.ProcessInfo;
+import moss.mystery.energymonitor.apps.App;
+import moss.mystery.energymonitor.intervals.Interval;
+import moss.mystery.energymonitor.intervals.IntervalHandler;
 
 public class FileParsing {
     //TODO: Look into making error catching here more robust? E.g. have closing files in 'finally' block rather than within the try?
@@ -34,13 +30,13 @@ public class FileParsing {
     }
 
     //Write data file to external storage
-    public static boolean writeFile(Context context){
+    public static boolean writeFile(Context context, IntervalHandler intervalHandler){
         Log.d(DEBUG, "Writing intervals to file");
         if(!checkStorage()){
             return false;
         }
 
-        ArrayList<Interval> intervals = MonitorLibrary.getIntervals();
+        ArrayList<Interval> intervals = intervalHandler.getIntervals();
         //Don't write if no intervals recorded
         if(intervals == null || intervals.size() == 0) {
             Log.d(DEBUG, "No intervals recorded, not writing to file");
@@ -65,7 +61,7 @@ public class FileParsing {
         return true;
     }
 
-    public static boolean readFile(Context context){
+    public static boolean readFile(Context context, IntervalHandler monitorLibrary){
         Log.d(DEBUG, "Reading intervals from file");
         if(!checkStorageReadOnly()){
             return false;
@@ -79,7 +75,7 @@ public class FileParsing {
             BufferedReader read = new BufferedReader(new FileReader(file));
             String line;
             while((line = read.readLine()) != null){
-                parseFromString(line);
+                parseFromString(line, monitorLibrary);
             }
             read.close();
         }
@@ -100,8 +96,8 @@ public class FileParsing {
 
             data.append(x.level).append(' ').append(x.length).append(' ').append(x.screenOnTime).append(' ').append(x.networkBytes);
 
-            for (ProcessInfo p : x.activeProcs) {
-                data.append(' ').append(p.name).append(' ').append(p.ticks);
+            for (App p : x.activeApps) {
+                data.append(' ').append(p.name).append(' ').append(p.ticks).append(' ').append(p.unknownApp);
             }
             data.append('\n');
         }
@@ -111,7 +107,7 @@ public class FileParsing {
 
     //Read from string to 'Interval' store
     //Note that this adds to existing intervals, so don't repeatedly re-read same file
-    private static void parseFromString(String string){
+    private static void parseFromString(String string, IntervalHandler monitorLibrary){
         String[] data = string.split(" ");
 
         //Check overall formatting correct
@@ -127,15 +123,16 @@ public class FileParsing {
         long networkBytes = Long.parseLong(data[3]);
 
         int numProcs = (data.length - 4) / 2;
-        ProcessInfo[] activeProcs = new ProcessInfo[numProcs];
+        App[] activeProcs = new App[numProcs];
 
 
         if(numProcs > 0){
             for(int i = 0; i < numProcs; i++){
-                activeProcs[i] = new ProcessInfo(data[(2 * i) + 4], Long.parseLong(data[(2 * i) + 5]));
+                activeProcs[i] = new App(data[(3 * i) + 4], Long.parseLong(data[(3 * i) + 5]), Boolean.valueOf(data[(3 * i) + 6]));
             }
         }
 
-        MonitorLibrary.populateInterval(new Interval(level, length, screenOnTime, networkBytes, activeProcs));
+
+        monitorLibrary.populateInterval(new Interval(level, length, screenOnTime, networkBytes, activeProcs));
     }
 }

@@ -1,4 +1,4 @@
-package moss.mystery.energymonitor.monitors;
+package moss.mystery.energymonitor.receivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,25 +9,33 @@ import android.os.PowerManager;
 import android.util.Log;
 import android.view.Display;
 
-public class ScreenMonitor extends BroadcastReceiver {
+import moss.mystery.energymonitor.intervals.IntervalHandler;
 
-    //Record current screen state in MonitorLibrary
+public class ScreenStateReceiver extends BroadcastReceiver {
+    private static final String DEBUG = "ScreenStateReceiver";
+    private final IntervalHandler intervalHandler;
+
+    public ScreenStateReceiver(IntervalHandler intervalHandler){
+        this.intervalHandler = intervalHandler;
+    }
+
+    //Record current screen state in IntervalHandler
     public void startTracking(Context context){
-        MonitorLibrary.setScreenOff();
-        MonitorLibrary.resetScreenCounter();
+        intervalHandler.setScreenOff();
+        intervalHandler.resetScreenCounter();
 
         if(Build.VERSION.SDK_INT >= 20) {
             DisplayManager dm = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
             for (Display display : dm.getDisplays()) {
                 if (display.getState() != Display.STATE_OFF) {
-                    MonitorLibrary.setScreenOn();
+                    intervalHandler.setScreenOn();
                     break;
                 }
             }
         } else {
             PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
             if(powerManager.isScreenOn()){
-                MonitorLibrary.setScreenOn();
+                intervalHandler.setScreenOn();
             }
         }
     }
@@ -35,12 +43,12 @@ public class ScreenMonitor extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if(Intent.ACTION_SCREEN_ON.equals(intent.getAction())){
-            MonitorLibrary.setScreenOn();
-            Log.d("Screen Monitor", "Screen on");
+            intervalHandler.setScreenOn();
+            Log.d(DEBUG, "Screen on");
         }
         else{
-            MonitorLibrary.setScreenOff();
-            Log.d("Screen Monitor", "Screen off");
+            intervalHandler.setScreenOff();
+            Log.d(DEBUG, "Screen off");
         }
     }
 }

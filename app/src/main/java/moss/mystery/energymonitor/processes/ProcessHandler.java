@@ -1,6 +1,6 @@
 package moss.mystery.energymonitor.processes;
 
-import android.net.TrafficStats;
+import android.content.pm.PackageManager;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -12,43 +12,41 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
+import moss.mystery.energymonitor.apps.App;
+import moss.mystery.energymonitor.apps.AppHandler;
+
 /**
  * Adapted from https://github.com/jaredrummler/AndroidProcesses
+ * Queries for currently running processes, keeps track of those previously observed
  */
 
-public class ProcessLibrary {
+public class ProcessHandler {
     private static final String PROC = "/proc";
     private static final String CMDLINE = "/proc/%d/cmdline";
     private static final String STAT = "/proc/%d/stat";
-    private static final String DEBUG = "ProcessLibrary";
+    private static final String DEBUG = "ProcessHandler";
 
-    private static boolean firstSample = true;          //Flag for handling special case
-    private static HashMap<String, Process> processes;
+    private final HashMap<String, Process> processes;
+    private final AppHandler appHandler;
+    private boolean firstSample; //Flag for handling special case
 
-    //TODO: This.
-    public static boolean checkPermission(){
-        return true;
+    public ProcessHandler(AppHandler appHandler){
+        this.processes = new HashMap<>();
+        this.firstSample = true;
+        this.appHandler = appHandler;
     }
 
-    //Tidy up process list
-    public static void reset(){
-        processes = new HashMap<String, Process>();
+    public void reset(){
+        processes.clear();
         firstSample = true;
     }
 
-    //TODO: Look into optimisations here, as this will run regularly and takes the longest
-    //Store a list of all files in directory, flag saying whether or not they are valid
-    //If a new file is not in the list, check to see if valid
-    //If a file in the list is no longer present in directory, remove from list
-    //Edge case: Unreadable dir gets replaced by readable one with same name within one sample
-    //Workaround: Refresh entire list every set number of samples, hope it wasn't important
-    //Would need benchmarks to justify making this change
-    public static void parseProcs(long threshold){
+    public void parseProcs(){
         Log.d(DEBUG, "Parsing processes");
         //Parse /proc directory
         File[] files = new File(PROC).listFiles();
         for (File file : files) {
-            if (file.isDirectory()) { //TODO: TEST - If file no longer exists, this just returns false and all is well
+            if (file.isDirectory()) {
                 int pid;
                 try {
                     pid = Integer.parseInt(file.getName());
@@ -61,48 +59,22 @@ public class ProcessLibrary {
                     continue;
                 }
                 //Get process CPU tick values
-                ProcessTime time = getTicks(pid);
+                CPUTicks time = getTicks(pid);
                 if(time == null){
                     continue;
                 }
 
                 Process proc = processes.get(name);
                 //If process not already recorded, add it to store
-                if(proc == null){
-                    if(firstSample){
-                        //Handle special case (cannot know when ticks occurred)
-                        processes.put(name, new Process(time));
-                    } else {
-                        //All ticks occurred in this interval, mark as active if past threshold
-                        processes.put(name, new Process(time, time.ticks >= threshold));
-                    }
+                if(proc == null) {
+                    processes.put(name, new Process(time, name, appHandler, firstSample));
                 //Else update elapsed ticks
                 } else {
-                    proc.updateTicks(time, threshold);
+                    proc.updateTicks(time);
                 }
             }
         }
         firstSample = false;
-    }
-
-    //Get list of procs active in this interval, reset interval ticks and active flags for all procs
-    public static ProcessInfo[] startNewSample(){
-        List<ProcessInfo> procList = new ArrayList<ProcessInfo>();
-
-        for(String key : processes.keySet()){
-            Process proc = processes.get(key);
-            if(proc.active){
-                procList.add(new ProcessInfo(key, proc.intTicks));
-                proc.active = false;
-            }
-            proc.intTicks = 0;
-        }
-
-        return procList.toArray(new ProcessInfo[0]);
-    }
-
-    public static HashMap<String, Process> processList(){
-        return processes;
     }
 
     //TODO: Robustify - check best practices for handling BufferedReaders
@@ -119,17 +91,15 @@ public class ProcessLibrary {
             if (reader != null) {
                 try {
                     reader.close();
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
             }
         }
 
-        if(name == null){
-            return null;
-        }
-        return name.trim();
+        return name == null ? null : name.trim();
     }
 
-    private static ProcessTime getTicks(int pid){
+    private static CPUTicks getTicks(int pid){
         BufferedReader reader = null;
         String line = null;
         try {
@@ -150,11 +120,36 @@ public class ProcessLibrary {
             return null;
         }
 
-        String[] fields = line.split(" "); //TODO: Test that this works consistently, vs regex for multiple spaces
+        String[] fields = line.split("\\s+");
         long utime = Long.parseLong(fields[13]);
         long stime = Long.parseLong(fields[14]);
         long start = Long.parseLong(fields[21]);
 
-        return new ProcessTime(utime + stime, start);
+        return new CPUTicks(utime + stime, start);
+    }
+
+    //Check whether we are allowed to read information in /proc
+    //Lifted straight from AndroidProcesses - more info available there
+    public static boolean noReadPermission() {
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader("/proc/mounts"));
+            for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                String[] columns = line.split("\\s+");
+                if (columns.length == 6 && columns[1].equals("/proc")) {
+                    return columns[3].contains("hidepid=1") || columns[3].contains("hidepid=2");
+                }
+            }
+        } catch (IOException e) {
+            Log.d(DEBUG, "Error reading /proc/mounts. Checking if UID 'readproc' exists.");
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException ignored) {
+                }
+            }
+        }
+        return android.os.Process.getUidForName("readproc") == 3009;
     }
 }

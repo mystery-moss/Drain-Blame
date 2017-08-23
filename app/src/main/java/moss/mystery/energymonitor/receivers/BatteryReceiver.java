@@ -1,23 +1,26 @@
-package moss.mystery.energymonitor.monitors;
+package moss.mystery.energymonitor.receivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.BatteryManager;
-import android.util.Log;
 
-import moss.mystery.energymonitor.processes.ProcessLibrary;
+import moss.mystery.energymonitor.intervals.IntervalHandler;
 
-//NB: Receiver should not be registered until after MonitorLibrary is initialised!
+//NB: Receiver should not be registered until after IntervalHandler is initialised!
 
-public class BatteryMonitor extends BroadcastReceiver {
+public class BatteryReceiver extends BroadcastReceiver {
     private boolean startup = true;
     private boolean charging = false;
     private int previousLevel = -1;
-    private boolean populated = false;
+    private IntervalHandler intervalHandler;
 
     public void restart(){
         startup = true;
+    }
+
+    public BatteryReceiver(IntervalHandler intervalHandler){
+        this.intervalHandler = intervalHandler;
     }
 
     @Override
@@ -28,16 +31,16 @@ public class BatteryMonitor extends BroadcastReceiver {
         boolean newCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                 status == BatteryManager.BATTERY_STATUS_FULL;
 
-        //If app has just started, pass all battery state info to MonitorLibrary
+        //If app has just started, pass all battery state info to IntervalHandler
         if(startup){
             charging = newCharging;
             previousLevel = level;
             if(charging){
-                MonitorLibrary.chargerConnected();
+                intervalHandler.chargerConnected();
             } else {
-                MonitorLibrary.chargerDisconnected();
+                intervalHandler.chargerDisconnected();
             }
-            MonitorLibrary.setBatteryLevel(level);
+            intervalHandler.setBatteryLevel(level);
             startup = false;
             return;
         }
@@ -50,20 +53,20 @@ public class BatteryMonitor extends BroadcastReceiver {
         //Charger has been connected
         if(newCharging){
             charging = true;
-            MonitorLibrary.chargerConnected();
+            intervalHandler.chargerConnected();
             return;
         }
         //Charger has been disconnected (was previously charging, now is not)
         if(charging){
             charging = false;
-            MonitorLibrary.chargerDisconnected();
-            //Cause next statement to fire, updating battery level here and in MonitorLibrary
+            intervalHandler.chargerDisconnected();
+            //Cause next statement to fire, updating battery level here and in IntervalHandler
             previousLevel = level + 1;
         }
         //Battery level has dropped
         if(level < previousLevel){
             previousLevel = level;
-            MonitorLibrary.setBatteryLevel(level);
+            intervalHandler.setBatteryLevel(level);
         }
     }
 }
