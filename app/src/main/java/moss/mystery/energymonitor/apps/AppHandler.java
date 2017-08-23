@@ -49,7 +49,7 @@ public class AppHandler {
         for(String key : apps.keySet()){
             App app = apps.get(key);
             if(app.ticks > threshold){
-                activeApps.add(app);
+                activeApps.add(new App(app.name, app.ticks, app.unknownApp));
             }
             app.ticks = 0;
         }

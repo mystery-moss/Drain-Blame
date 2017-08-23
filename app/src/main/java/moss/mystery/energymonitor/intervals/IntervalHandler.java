@@ -31,7 +31,8 @@ public class IntervalHandler {
     private final ArrayList<Interval> intervals;
     private final Handler handler;
     private ProcessPoller processPoller;
-    private long threshold = 50;           //CPU tick threshold to consider a process as 'active'
+    //Hardcoded minimum CPU tick threshold to consider a process as 'active'
+    private long threshold = 50;
 
     //Control=======================================================================================
     public IntervalHandler(ProcessHandler processHandler, AppHandler appHandler){

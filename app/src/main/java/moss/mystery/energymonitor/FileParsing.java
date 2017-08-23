@@ -97,7 +97,7 @@ public class FileParsing {
             data.append(x.level).append(' ').append(x.length).append(' ').append(x.screenOnTime).append(' ').append(x.networkBytes);
 
             for (App p : x.activeApps) {
-                data.append(' ').append(p.name).append(' ').append(p.ticks);
+                data.append(' ').append(p.name).append(' ').append(p.ticks).append(' ').append(p.unknownApp);
             }
             data.append('\n');
         }
@@ -128,9 +128,10 @@ public class FileParsing {
 
         if(numProcs > 0){
             for(int i = 0; i < numProcs; i++){
-                activeProcs[i] = new App(data[(2 * i) + 4], Long.parseLong(data[(2 * i) + 5]), false);
+                activeProcs[i] = new App(data[(3 * i) + 4], Long.parseLong(data[(3 * i) + 5]), Boolean.valueOf(data[(3 * i) + 6]));
             }
         }
+
 
         monitorLibrary.populateInterval(new Interval(level, length, screenOnTime, networkBytes, activeProcs));
     }
