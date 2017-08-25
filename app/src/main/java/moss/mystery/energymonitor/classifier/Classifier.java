@@ -53,11 +53,13 @@ public class Classifier {
         return classifiedApps.toArray(new ClassifiedApp[0]);
     }
 
-    public boolean classify(ArrayList<Interval> intervals){
-        if(intervals.size() < MIN_INTERVALS){
+    public boolean classify(Interval[] intervalArray, int size){
+        if(size < MIN_INTERVALS){
             return false;
         }
-        intervals = (ArrayList<Interval>) intervals.clone();
+
+        //Convert to list for ease of removing intervals, truncating to appropriate size as required
+        ArrayList<Interval> intervals = new ArrayList<>(Arrays.asList(Arrays.copyOf(intervalArray, size)));
 
         setCPUThreshold();
         setThresholds(intervals);
@@ -65,7 +67,7 @@ public class Classifier {
         //SETUP====================================================================================
         //Remove any process in interval with ticks below CPU threshold
         for(Interval interval : intervals){
-            ArrayList<App> pastThreshold = new ArrayList<App>();
+            ArrayList<App> pastThreshold = new ArrayList<>();
             for(App app : interval.activeApps){
                 if(app.ticks >= cpuThreshold){
                     pastThreshold.add(app);
@@ -103,10 +105,9 @@ public class Classifier {
         }
 
         //If any app is observed in too few intervals to make a meaningful classification, ignore it
-        //Equally, if an app is active in a majority of intervals, cannot be reliably classified
         for(String name : unclassified){
             UnclassifiedApp app = unclassifiedApps.get(name);
-            if(app.totalactive < MIN_APP_INTERVALS || app.totalactive >= intervals.size() * MAX_APP_PERCENTAGE){
+            if(app.totalactive < MIN_APP_INTERVALS){
                 unclassifiedApps.remove(name);
                 insufficientInfo.add(name);
             }

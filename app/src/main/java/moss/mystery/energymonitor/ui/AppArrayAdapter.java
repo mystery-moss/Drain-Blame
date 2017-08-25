@@ -21,10 +21,12 @@ public class AppArrayAdapter extends ArrayAdapter {
         this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.apps = apps;
         this.showText = showText;
+        Log.d("ArrayAdapter", "Created - length = " + apps.length);
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent){
+        Log.d("ArrayAdapter", "Running");
         View rowView;
         //Special case if there are no apps to display
         if(showText){

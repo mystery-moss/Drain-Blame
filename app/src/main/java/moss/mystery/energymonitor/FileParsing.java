@@ -17,7 +17,11 @@ import moss.mystery.energymonitor.intervals.IntervalHandler;
 public class FileParsing {
     //TODO: Look into making error catching here more robust? E.g. have closing files in 'finally' block rather than within the try?
     private static final String DEBUG = "File Parsing";
+    private static final String FILENAME = "intervalData";
     private static final int VERSION = 6;
+
+    private static final int DATA_FIELDS = 4;       //Number of data fields at start of each interval line
+    private static final int APP_FIELDS = 3;        //Number of data fields for each app
 
     //Check whether external storage can be written
     public static boolean checkStorage(){
@@ -37,9 +41,11 @@ public class FileParsing {
             return false;
         }
 
-        ArrayList<Interval> intervals = intervalHandler.getIntervals();
+        Interval[] intervals = intervalHandler.getIntervals();
+        int size = intervalHandler.numIntervals();
+
         //Don't write if no intervals recorded
-        if(intervals == null || intervals.size() == 0) {
+        if(size == 0) {
             Log.d(DEBUG, "No intervals recorded, not writing to file");
             return true;
         }
@@ -47,9 +53,9 @@ public class FileParsing {
         try {
             File path = context.getExternalFilesDir(null);
             Log.d(DEBUG, "Path = " + path.toString());
-            File file = new File(path, "intervalData");
+            File file = new File(path, FILENAME);
 
-            String data = parseToString(intervals);
+            String data = parseToString(intervals, size);
 
             FileOutputStream stream = new FileOutputStream(file);
             stream.write(data.getBytes());
@@ -68,12 +74,13 @@ public class FileParsing {
             return false;
         }
 
-        //for each line in file, get string pass to parse function
+        //for each line in file, get string, pass to parse function
         try {
             File path = context.getExternalFilesDir(null);
-            File file = new File(path, "intervalData");
+            File file = new File(path, FILENAME);
 
             BufferedReader read = new BufferedReader(new FileReader(file));
+            //Check file version
             String line = read.readLine();
             int version = Integer.parseInt(line);
             if(version != VERSION){
@@ -93,18 +100,17 @@ public class FileParsing {
     }
 
     //Convert 'Interval' store to string
-    private static String parseToString(ArrayList<Interval> intervals) {
-        int size = intervals.size();
+    private static String parseToString(Interval[] intervals, int size) {
         StringBuilder data = new StringBuilder();
         data.append(VERSION).append('\n');
 
         for (int i = 0; i < size; i++) {
-            Interval x = intervals.get(i);
+            Interval x = intervals[i];
 
             data.append(x.level).append(' ').append(x.length).append(' ').append(x.screenOnTime).append(' ').append(x.networkBytes);
 
             for (App p : x.activeApps) {
-                data.append(' ').append(p.name).append(' ').append(p.ticks).append(' ').append(p.unknownApp);
+                data.append(' ').append(p.name.replaceAll(" ", "_")).append(' ').append(p.ticks).append(' ').append(p.unknownApp);
             }
             data.append('\n');
         }
@@ -123,22 +129,22 @@ public class FileParsing {
             return;
         }
 
-        //TODO: Error checking here!!!
         int level = Integer.parseInt(data[0]);
         long length = Long.parseLong(data[1]);
         long screenOnTime = Long.parseLong(data[2]);
         long networkBytes = Long.parseLong(data[3]);
 
-        int numProcs = (data.length - 4) / 2;
+        int numProcs = (data.length - DATA_FIELDS) / APP_FIELDS;
         App[] activeProcs = new App[numProcs];
-
 
         if(numProcs > 0){
             for(int i = 0; i < numProcs; i++){
-                activeProcs[i] = new App(data[(3 * i) + 4], Long.parseLong(data[(3 * i) + 5]), Boolean.valueOf(data[(3 * i) + 6]));
+                activeProcs[i] = new App(
+                        data[(APP_FIELDS * i) + DATA_FIELDS].replaceAll("_", " "),
+                        Long.parseLong(data[(APP_FIELDS * i) + DATA_FIELDS + 1]),
+                        Boolean.valueOf(data[(APP_FIELDS * i) + DATA_FIELDS + 2]));
             }
         }
-
 
         monitorLibrary.populateInterval(new Interval(level, length, screenOnTime, networkBytes, activeProcs));
     }

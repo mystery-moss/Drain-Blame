@@ -8,13 +8,15 @@ import android.support.v4.app.DialogFragment;
 
 import moss.mystery.energymonitor.R;
 
+import static android.R.string.ok;
+
 public class ErrorDialog extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(R.string.error)
                 .setMessage(R.string.read_permissions_error)
-                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id){
                 //TODO: Quit the app?
             }

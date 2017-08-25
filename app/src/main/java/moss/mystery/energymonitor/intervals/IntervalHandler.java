@@ -1,5 +1,6 @@
 package moss.mystery.energymonitor.intervals;
 
+import android.content.Context;
 import android.net.TrafficStats;
 import android.os.Handler;
 import android.util.Log;
@@ -7,14 +8,18 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import moss.mystery.energymonitor.FileParsing;
 import moss.mystery.energymonitor.apps.AppHandler;
 import moss.mystery.energymonitor.ui.MainActivity;
 import moss.mystery.energymonitor.processes.ProcessHandler;
 
 public class IntervalHandler {
     private static final String DEBUG = "Monitor Library";
+    private static final int MAX_INTERVALS = 1000;  //Max number of intervals to store before looping
+    private static final int SAVE_INTERVAL = 20;    //Save data to file every X recorded intervals
     private final ProcessHandler processHandler;
     private final AppHandler appHandler;
+    private final Context context;
 
     private int batteryLevel;
     private boolean charging;
@@ -28,22 +33,27 @@ public class IntervalHandler {
 
     private boolean firstInterval;
     private long intervalStart;
-    private final ArrayList<Interval> intervals;
+    private final Interval[] intervals;
+    private int intervalIndex;
+    private boolean maxIntervals;
     private final Handler handler;
     private ProcessPoller processPoller;
     //Hardcoded minimum CPU tick threshold to consider a process as 'active'
     private long threshold = 50;
 
     //Control=======================================================================================
-    public IntervalHandler(ProcessHandler processHandler, AppHandler appHandler){
+    public IntervalHandler(ProcessHandler processHandler, AppHandler appHandler, Context context){
         this.processHandler = processHandler;
         this.appHandler = appHandler;
+        this.context = context;
         handler = new Handler();
         firstInterval = true;
         screenOn = false;
         charging = false;
         batteryLevel = -1;
-        intervals = new ArrayList<Interval>();
+        intervals = new Interval[MAX_INTERVALS];
+        intervalIndex = 0;
+        maxIntervals = false;
     }
 
     public void shutdown(){
@@ -132,16 +142,36 @@ public class IntervalHandler {
     }
 
     //Interval tracking=============================================================================
-    public void clearIntervals(){
-        intervals.clear();
-    }
-
-    public ArrayList<Interval> getIntervals(){
+    public Interval[] getIntervals(){
         return intervals;
     }
 
+    public int numIntervals(){
+        if(maxIntervals){
+            return MAX_INTERVALS;
+        }
+        return intervalIndex;
+    }
+
+    public void addInterval(Interval i){
+        intervals[intervalIndex] = i;
+        if(++intervalIndex >= MAX_INTERVALS){
+            intervalIndex = 0;
+            maxIntervals = true;
+        }
+        //Periodically save all data
+        if(intervalIndex % SAVE_INTERVAL == 0){
+            FileParsing.writeFile(context, this);
+        }
+    }
+
+    //Add interval without autosaving
     public void populateInterval(Interval i){
-        intervals.add(i);
+        intervals[intervalIndex] = i;
+        if(++intervalIndex >= MAX_INTERVALS){
+            intervalIndex = 0;
+            maxIntervals = true;
+        }
     }
 
     private void newInterval(long timestamp, boolean specialCase){
@@ -154,7 +184,7 @@ public class IntervalHandler {
             appHandler.resetTicks();
         } else {
             //Record previous interval
-            intervals.add(new Interval(batteryLevel, timestamp - intervalStart, getScreenOnDuration(), getNetworkBytes(), appHandler.startNewSample(threshold)));
+            addInterval(new Interval(batteryLevel, timestamp - intervalStart, getScreenOnDuration(), getNetworkBytes(), appHandler.startNewSample(threshold)));
         }
 
         resetScreenCounter();
@@ -198,7 +228,7 @@ public class IntervalHandler {
             handler.post(processPoller);
         }
         //Else use an alarm
-        else {
+//        else {
             //TODO: Needs to receive a referenced to ProcessHandler so it can call parseProcs
 //        //Increase context capabilities?
 //        context = context.getApplicationContext();
@@ -218,6 +248,6 @@ public class IntervalHandler {
 //        //TODO: Why does it only trigger every minute, not every 30 seconds?
 //        //And even that is pretty inconsistent...
 //        alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, firstMillis, 30 * 1000, pIntent);
-        }
+//        }
     }
 }

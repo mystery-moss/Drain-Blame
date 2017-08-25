@@ -16,16 +16,14 @@ public class ApplicationGlobals {
     public IntervalHandler intervalHandler;
     public ProcessHandler processHandler;
     public AppHandler appHandler;
-    public Classifier classifier;
-    public Context appContext;
+//    public Context appContext;
     public boolean serviceEnabled;
 
     private ApplicationGlobals(Context appContext){
-        this.appContext = appContext;
+//        this.appContext = appContext;
         this.appHandler = new AppHandler(appContext);
         this.processHandler = new ProcessHandler(appHandler);
-        this.intervalHandler = new IntervalHandler(processHandler, appHandler);
-        this.classifier = new Classifier();
+        this.intervalHandler = new IntervalHandler(processHandler, appHandler, appContext);
         //TODO: Potentially record user preference for this, read it here
         this.serviceEnabled = true;
     }
