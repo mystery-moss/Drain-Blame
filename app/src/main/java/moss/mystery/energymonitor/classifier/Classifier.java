@@ -54,7 +54,22 @@ public class Classifier {
     }
 
     public ClassifiedApp[] getClassifiedApps(){
-        return classifiedApps.toArray(new ClassifiedApp[0]);
+        ClassifiedApp[] output = new ClassifiedApp[classifiedApps.size()];
+
+        //Sort array in order high, medium, low drain and high, medium, low confidence
+        //This got bolted on at the end, can you tell?
+        int index = 0;
+        for(int i = HIGH; i > -1; --i){
+            for(int j = HIGH; j > -1; --j){
+                for(ClassifiedApp app : classifiedApps){
+                    if(app.classification == i && app.confidence == j){
+                        output[index++] = app;
+                    }
+                }
+            }
+        }
+
+        return output;
     }
 
     public int classify(){

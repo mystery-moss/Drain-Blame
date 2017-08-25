@@ -3,7 +3,7 @@ package moss.mystery.energymonitor.apps;
 //Information on process state within a battery interval
 
 public class App {
-    public final String name;           //Name from PackageManager, if known, else null
+    public final String name;           //Name from PackageManager, if known, else process name
     public final boolean unknownApp;    //True if no app could be associated with this process
     public long ticks;
 

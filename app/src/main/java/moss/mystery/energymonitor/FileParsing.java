@@ -24,12 +24,12 @@ public class FileParsing {
     private static final int APP_FIELDS = 3;        //Number of data fields for each app
 
     //Check whether external storage can be written
-    public static boolean checkStorage(){
+    private static boolean checkStorage(){
         return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
     }
 
     //Check whether external storage can be read
-    public static boolean checkStorageReadOnly(){
+    private static boolean checkStorageReadOnly(){
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
     }
@@ -52,7 +52,6 @@ public class FileParsing {
 
         try {
             File path = context.getExternalFilesDir(null);
-            Log.d(DEBUG, "Path = " + path.toString());
             File file = new File(path, FILENAME);
 
             String data = parseToString(intervals, size);

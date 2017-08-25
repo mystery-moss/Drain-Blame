@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
                     listView.setVisibility(View.VISIBLE);
                     heading.setVisibility(View.VISIBLE);
 
-                    AppArrayAdapter adapter = new AppArrayAdapter(context, classifier.getClassifiedApps(), false);
+                    AppArrayAdapter adapter = new AppArrayAdapter(context, classifier.getClassifiedApps());
                     listView.setAdapter(adapter);
 
                     //If number of classified apps below threshold, show info text, else hide

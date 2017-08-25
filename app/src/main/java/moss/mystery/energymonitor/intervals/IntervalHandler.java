@@ -153,7 +153,7 @@ public class IntervalHandler {
         return intervalIndex;
     }
 
-    public void addInterval(Interval i){
+    private void addInterval(Interval i){
         intervals[intervalIndex] = i;
         if(++intervalIndex >= MAX_INTERVALS){
             intervalIndex = 0;
