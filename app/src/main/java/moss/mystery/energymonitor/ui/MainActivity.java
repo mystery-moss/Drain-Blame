@@ -2,6 +2,7 @@ package moss.mystery.energymonitor.ui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ResolveInfo;
 import android.os.AsyncTask;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
@@ -18,10 +19,15 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import moss.mystery.energymonitor.ApplicationGlobals;
 import moss.mystery.energymonitor.FileParsing;
 import moss.mystery.energymonitor.MainService;
 import moss.mystery.energymonitor.R;
+import moss.mystery.energymonitor.classifier.ClassifiedApp;
 import moss.mystery.energymonitor.classifier.Classifier;
 import moss.mystery.energymonitor.processes.ProcessHandler;
 
@@ -55,8 +61,9 @@ public class MainActivity extends AppCompatActivity {
 
 
         TextView info = (TextView) findViewById(R.id.infoText);
-        info.setVisibility(View.GONE);
-//        info.setText(String.valueOf(globals.intervalHandler.numIntervals()));
+//        info.setVisibility(View.GONE);
+        //TODO: DEBUG
+        info.setText(String.valueOf(globals.intervalHandler.numIntervals()));
 //        info.setText(R.string.keep_running);
     }
 
@@ -94,6 +101,9 @@ public class MainActivity extends AppCompatActivity {
                 updateMonitorText();
                 populateAppList();
                 //Maybe do something to the page so it's clear it has actually refreshed - e.g. pop up a spinner for a second
+                //TODO: DEBUG
+                TextView info = (TextView) findViewById(R.id.infoText);
+                info.setText(String.valueOf(globals.intervalHandler.numIntervals()));
                 return true;
             case R.id.action_togglemonitor:
                 //Set 'toggle monitor' menu and status text
@@ -122,6 +132,8 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Error writing file", Toast.LENGTH_SHORT).show();
                 }
                 return true;
+            case R.id.demo_populate:
+                demoPopulate();
             default:
                 return true;
         }
@@ -150,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
             protected void onPostExecute(Integer numClassified){
                 ListView listView = (ListView) findViewById(R.id.app_list);
                 TextView appText = (TextView) findViewById(R.id.appListText);
-                TextView info = (TextView) findViewById(R.id.infoText);
+//                TextView info = (TextView) findViewById(R.id.infoText);
                 TextView heading = (TextView) findViewById(R.id.heading);
 
                 //Populate list view
@@ -165,14 +177,14 @@ public class MainActivity extends AppCompatActivity {
 
                     //If number of classified apps below threshold, show info text, else hide
                     if(numClassified <= NUM_THRESHOLD){
-                        info.setVisibility(View.VISIBLE);
+//                        info.setVisibility(View.VISIBLE);
                     } else {
-                        info.setVisibility(View.GONE);
+//                        info.setVisibility(View.GONE);
                     }
                 } else {
                     //Display message about lack of intervals
                     listView.setVisibility(View.GONE);
-                    info.setVisibility(View.GONE);
+//                    info.setVisibility(View.GONE);
                     heading.setVisibility(View.GONE);
                     appText.setVisibility(View.VISIBLE);
                 }
@@ -187,10 +199,51 @@ public class MainActivity extends AppCompatActivity {
         TextView enabled = (TextView) findViewById(R.id.monitorStatus);
         if(globals.serviceEnabled) {
             enabled.setText(R.string.monitor_running);
-            enabled.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark));
+            enabled.setTextColor(ContextCompat.getColor(this, R.color.green));
         } else {
             enabled.setText(R.string.monitor_not_running);
-            enabled.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
+            enabled.setTextColor(ContextCompat.getColor(this, R.color.red));
         }
+    }
+
+    //TODO: Temporary, for demo purposes
+    private void demoPopulate(){
+        final Context context = this;
+
+        ListView listView = (ListView) findViewById(R.id.app_list);
+        TextView appText = (TextView) findViewById(R.id.appListText);
+//      TextView info = (TextView) findViewById(R.id.infoText);
+        TextView heading = (TextView) findViewById(R.id.heading);
+
+        appText.setVisibility(View.GONE);
+        listView.setVisibility(View.VISIBLE);
+        heading.setVisibility(View.VISIBLE);
+
+        //Get x apps
+        Intent intent = new Intent(Intent.ACTION_MAIN, null);
+        intent .addCategory(Intent.CATEGORY_LAUNCHER);
+        List<ResolveInfo> apps = context.getPackageManager().queryIntentActivities(intent , 0);
+        Collections.shuffle(apps);
+
+        int index = 0;
+        ClassifiedApp[] classifiedApps = new ClassifiedApp[7];
+        int[] classification =  {2, 2, 2, 1, 1, 0, 0};
+        int[] confidence =      {2, 2, 1, 2, 1, 2, 0};
+
+        //Turn them into classifiedApps
+        for(ResolveInfo info : apps){
+            if(index == 7){
+                break;
+            }
+            classifiedApps[index] = new ClassifiedApp(info.activityInfo.applicationInfo.packageName, classification[index], confidence[index], false, index == 1 || index == 2);
+            ++index;
+        }
+
+        if(index != 7){
+            classifiedApps = Arrays.copyOf(classifiedApps, index);
+        }
+
+        AppArrayAdapter adapter = new AppArrayAdapter(context, classifiedApps);
+        listView.setAdapter(adapter);
     }
 }

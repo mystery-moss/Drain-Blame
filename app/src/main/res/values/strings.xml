@@ -19,4 +19,5 @@
     <string name="high_confidence">High confidence</string>
     <string name="medium_confidence">Medium confidence</string>
     <string name="low_confidence">Low confidence</string>
+    <string name="demo_populate">Example classification</string>
 </resources>
