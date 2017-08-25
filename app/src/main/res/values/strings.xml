@@ -12,4 +12,11 @@
     <string name="debug_writefile">Write file</string>
     <string name="keep_running">The longer the battery monitor collects data, the more apps will be classified.</string>
     <string name="classified_apps">Classified Apps:</string>
+    <string name="high_drain">High drain</string>
+    <string name="medium_drain">Medium drain</string>
+    <string name="low_drain">Low drain</string>
+    <string name="when_network">, when network activity is high</string>
+    <string name="high_confidence">High confidence</string>
+    <string name="medium_confidence">Medium confidence</string>
+    <string name="low_confidence">Low confidence</string>
 </resources>

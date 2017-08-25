@@ -8,7 +8,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.util.ArrayList;
 
 import moss.mystery.energymonitor.apps.App;
 import moss.mystery.energymonitor.intervals.Interval;
@@ -109,7 +108,7 @@ public class FileParsing {
             data.append(x.level).append(' ').append(x.length).append(' ').append(x.screenOnTime).append(' ').append(x.networkBytes);
 
             for (App p : x.activeApps) {
-                data.append(' ').append(p.name.replaceAll(" ", "_")).append(' ').append(p.ticks).append(' ').append(p.unknownApp);
+                data.append(' ').append(p.name).append(' ').append(p.ticks).append(' ').append(p.unknownPackage);
             }
             data.append('\n');
         }
@@ -139,7 +138,7 @@ public class FileParsing {
         if(numProcs > 0){
             for(int i = 0; i < numProcs; i++){
                 activeProcs[i] = new App(
-                        data[(APP_FIELDS * i) + DATA_FIELDS].replaceAll("_", " "),
+                        data[(APP_FIELDS * i) + DATA_FIELDS],
                         Long.parseLong(data[(APP_FIELDS * i) + DATA_FIELDS + 1]),
                         Boolean.valueOf(data[(APP_FIELDS * i) + DATA_FIELDS + 2]));
             }

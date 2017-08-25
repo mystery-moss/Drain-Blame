@@ -1,8 +1,5 @@
 package moss.mystery.energymonitor.classifier;
 
-import android.support.v4.util.ArraySet;
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,7 +7,6 @@ import java.util.HashSet;
 
 import moss.mystery.energymonitor.apps.App;
 import moss.mystery.energymonitor.intervals.Interval;
-import moss.mystery.energymonitor.intervals.IntervalHandler;
 
 public class Classifier {
     private static final String DEBUG = "Classifier";
@@ -19,9 +15,9 @@ public class Classifier {
     private static final float HIGH_CONFIDENCE = 0.75f;
     private static final float MEDIUM_CONFIDENCE = 0.65f;
 
-    private static final int HIGH = 2;
-    private static final int MEDIUM = 1;
-    private static final int LOW = 0;
+    public static final int HIGH = 2;
+    public static final int MEDIUM = 1;
+    public static final int LOW = 0;
 
     private ArrayList<Interval> intervals;
     private int size;
@@ -221,7 +217,7 @@ public class Classifier {
     }
 
     private void classifyApp(App app, ArrayList<ClassifiedApp> list, int classification, int confidence, boolean network){
-        list.add(new ClassifiedApp(app.name, classification, confidence, app.unknownApp, network));
+        list.add(new ClassifiedApp(app.name, classification, confidence, app.unknownPackage, network));
     }
 
     private void removeHighDrain(String target, ArrayList<Interval> intervals, ArrayList<Interval> toRemove){

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.util.Log;
+import android.util.StringBuilderPrinter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 import moss.mystery.energymonitor.ApplicationGlobals;
 import moss.mystery.energymonitor.R;
 import moss.mystery.energymonitor.classifier.ClassifiedApp;
+import moss.mystery.energymonitor.classifier.Classifier;
 
 public class AppArrayAdapter extends ArrayAdapter {
     private final Context context;
@@ -47,22 +49,58 @@ public class AppArrayAdapter extends ArrayAdapter {
 
         ClassifiedApp app = apps[position];
 
-        viewHolder.bigText.setText(app.name);
-        viewHolder.smallText.setText(app.classification + " - " + app.confidence + " confidence");
-
-        //Get icon
-        try {
-            Log.d("TEMP", "Getting ai for " + apps[position].name);
-            ApplicationInfo ai = pm.getApplicationInfo(apps[position].name, 0);
-            viewHolder.image.setImageDrawable(pm.getApplicationIcon(ai));
-        } catch (PackageManager.NameNotFoundException ignored) {
-            Log.d("TEMP", "Nope");
+        //Get appInfo
+        ApplicationInfo ai = null;
+        if(!app.unknownPackage) {
+            try {
+                Log.d("TEMP", "Getting ai for " + app.name);
+                ai = pm.getApplicationInfo(app.name, 0);
+            } catch (PackageManager.NameNotFoundException ignored) {
+                Log.d("TEMP", "Nope");
+            }
         }
+
+        if(ai != null) {
+            viewHolder.bigText.setText(pm.getApplicationLabel(ai));
+            viewHolder.image.setImageDrawable(pm.getApplicationIcon(ai));
+        } else {
+            viewHolder.bigText.setText(app.name);
+        }
+
+        //Set classification text
+        StringBuilder text = new StringBuilder();
+        switch(app.classification){
+            case(Classifier.HIGH):
+                text.append(context.getString(R.string.high_drain));
+                break;
+            case(Classifier.MEDIUM):
+                text.append(context.getString(R.string.medium_drain));
+                break;
+            case(Classifier.LOW):
+                text.append(context.getString(R.string.low_drain));
+        }
+        if(app.network){
+            text.append(context.getString(R.string.when_network));
+        }
+
+        text.append(" - ");
+        switch(app.confidence){
+            case(Classifier.HIGH):
+                text.append(context.getString(R.string.high_confidence));
+                break;
+            case(Classifier.MEDIUM):
+                text.append(context.getString(R.string.medium_confidence));
+                break;
+            case(Classifier.LOW):
+                text.append(context.getString(R.string.low_confidence));
+        }
+
+        viewHolder.smallText.setText(text);
 
         return convertView;
     }
 
-    static class ViewHolderItem {
+    private static class ViewHolderItem {
         TextView bigText;
         TextView smallText;
         ImageView image;

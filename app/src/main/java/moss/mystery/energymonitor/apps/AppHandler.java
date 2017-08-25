@@ -31,7 +31,7 @@ public class AppHandler {
         if(ai == null) {
             name = processName;
         } else {
-            name = (String) pm.getApplicationLabel(ai);
+            name = ai.packageName;
         }
 
         App app = apps.get(name);
@@ -49,7 +49,7 @@ public class AppHandler {
         for(String key : apps.keySet()){
             App app = apps.get(key);
             if(app.ticks > threshold){
-                activeApps.add(new App(app.name, app.ticks, app.unknownApp));
+                activeApps.add(new App(app.name, app.ticks, app.unknownPackage));
             }
             app.ticks = 0;
         }
