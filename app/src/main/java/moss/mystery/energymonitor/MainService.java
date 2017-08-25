@@ -53,9 +53,6 @@ public class MainService extends Service {
         //Start monitor components
         globals = ApplicationGlobals.get(context);
 
-        //Determine CPU threshold
-        //TODO: Split this out into another thread?
-
         //Register screen state receiver
         screenStateReceiver = new ScreenStateReceiver(globals.intervalHandler);
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);

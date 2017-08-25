@@ -4,10 +4,12 @@
     <string name="monitor_not_running">The battery monitor is not running</string>
     <string name="monitor_on">Start monitoring</string>
     <string name="monitor_off">Stop monitoring</string>
-    <string name="too_few_intervals">Apps will be classified when more battery information has been collected</string>
+    <string name="too_few_intervals">Apps will be classified when more battery information has been collected.</string>
     <string name="read_permissions_error">From Android 7 onwards apps cannot read the list of running processes, so monitoring will not work. However, this is just an evaluation version of this app, so you can have a look around anyway.</string>
     <string name="error">Error</string>
     <string name="refresh">Refresh</string>
     <string name="debug_readfile">Read file</string>
     <string name="debug_writefile">Write file</string>
+    <string name="keep_running">The longer the battery monitor collects data, the more apps will be classified.</string>
+    <string name="classified_apps">Classified Apps:</string>
 </resources>

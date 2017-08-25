@@ -12,19 +12,19 @@ import moss.mystery.energymonitor.apps.App;
 import moss.mystery.energymonitor.intervals.Interval;
 import moss.mystery.energymonitor.intervals.IntervalHandler;
 
-//TODO: Make sure I'm not in a position where 'intervals' can be updated while I'm using it!
-    //Ok, currently using a 'clone' which should be ok
 public class Classifier {
     private static final String DEBUG = "Classifier";
     private static final int MIN_INTERVALS = 10;     //Minimum total intervals required to attempt classification
     private static final int MIN_APP_INTERVALS = 4;  //Minimum intervals for a single app required
-    private static final float MAX_APP_PERCENTAGE = 0.9f;   //Apps active in too many intervals cannot be reliably classified
     private static final float HIGH_CONFIDENCE = 0.75f;
     private static final float MEDIUM_CONFIDENCE = 0.65f;
 
     private static final int HIGH = 2;
     private static final int MEDIUM = 1;
     private static final int LOW = 0;
+
+    private ArrayList<Interval> intervals;
+    private int size;
 
     private long cpuThreshold;
     private long shortint;
@@ -39,7 +39,7 @@ public class Classifier {
     private HashSet<String> unclassified;
     private HashSet<String> insufficientInfo;
 
-    public Classifier(){
+    public Classifier(Interval[] intervalArray, int size){
         classifiedApps = new ArrayList<>();
         unclassifiedApps = new HashMap<>();
         highDrain = new HashSet<>();
@@ -47,22 +47,23 @@ public class Classifier {
         lowDrain = new HashSet<>();
         unclassified = new HashSet<>();
         insufficientInfo = new HashSet<>();
+
+        this.size = size;
+        //Convert to list for ease of removing intervals, truncating to appropriate size as required
+        this.intervals = new ArrayList<>(Arrays.asList(Arrays.copyOf(intervalArray, size)));
     }
 
     public ClassifiedApp[] getClassifiedApps(){
         return classifiedApps.toArray(new ClassifiedApp[0]);
     }
 
-    public boolean classify(Interval[] intervalArray, int size){
+    public int classify(){
         if(size < MIN_INTERVALS){
-            return false;
+            return 0;
         }
 
-        //Convert to list for ease of removing intervals, truncating to appropriate size as required
-        ArrayList<Interval> intervals = new ArrayList<>(Arrays.asList(Arrays.copyOf(intervalArray, size)));
-
         setCPUThreshold();
-        setThresholds(intervals);
+        setThresholds();
 
         //SETUP====================================================================================
         //Remove any process in interval with ticks below CPU threshold
@@ -197,7 +198,7 @@ public class Classifier {
         unclassified.removeAll(mediumDrain);
         unclassified.removeAll(lowDrain);
 
-        return true;
+        return classifiedApps.size();
     }
 
     private void classifyApp(App app, ArrayList<ClassifiedApp> list, int classification, int confidence){
@@ -228,10 +229,7 @@ public class Classifier {
         cpuThreshold = 200;
     }
 
-    private void setThresholds(ArrayList<Interval> intervals){
-        //Extract all interval lengths
-        int size = intervals.size();
-
+    private void setThresholds(){
         //Get average interval length + network usage
         long avgBatt = 0;
         long avgNet = 0;
