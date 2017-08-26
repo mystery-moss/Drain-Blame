@@ -20,4 +20,6 @@
     <string name="medium_confidence">Medium confidence</string>
     <string name="low_confidence">Low confidence</string>
     <string name="demo_populate">Example classification</string>
+    <string name="notification_title">Drain Blame battery monitor</string>
+    <string name="notification_content">Monitoring battery level.</string>
 </resources>

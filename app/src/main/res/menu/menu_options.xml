@@ -13,15 +13,15 @@
         android:title="@string/monitor_off"
         app:showAsAction="never"/>
 
-    <item
-        android:id="@+id/action_readfile"
-        android:title="@string/debug_readfile"
-        app:showAsAction="never"/>
+    <!--<item-->
+        <!--android:id="@+id/action_readfile"-->
+        <!--android:title="@string/debug_readfile"-->
+        <!--app:showAsAction="never"/>-->
 
-    <item
-        android:id="@+id/action_writefile"
-        android:title="@string/debug_writefile"
-        app:showAsAction="never"/>
+    <!--<item-->
+        <!--android:id="@+id/action_writefile"-->
+        <!--android:title="@string/debug_writefile"-->
+        <!--app:showAsAction="never"/>-->
 
     <item
         android:id="@+id/demo_populate"
