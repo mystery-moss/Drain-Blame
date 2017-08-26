@@ -110,7 +110,9 @@ public class AppArrayAdapter extends ArrayAdapter {
                 viewHolder.classification.setTextColor(ContextCompat.getColor(context, R.color.grey));
             }
         } else {
-            viewHolder.classification.setTextColor(ContextCompat.getColor(context, R.color.red));
+            if(red) {
+                viewHolder.classification.setTextColor(ContextCompat.getColor(context, R.color.red));
+            }
         }
 
         return convertView;

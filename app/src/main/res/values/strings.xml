@@ -1,10 +1,10 @@
 <resources>
-    <string name="app_name">EnergyMonitor</string>
+    <string name="app_name">Drain Blame</string>
     <string name="monitor_running">The battery monitor is running</string>
     <string name="monitor_not_running">The battery monitor is not running</string>
     <string name="monitor_on">Start monitoring</string>
     <string name="monitor_off">Stop monitoring</string>
-    <string name="too_few_intervals">Apps will be classified when more battery information has been collected.</string>
+    <string name="too_few_intervals">Apps will be classified when more battery information has been collected. Select \'Example classification\' in the menu to see what this looks like.</string>
     <string name="read_permissions_error">From Android 7 onwards apps cannot read the list of running processes, so monitoring will not work. However, this is just an evaluation version of this app, so you can have a look around anyway.</string>
     <string name="error">Error</string>
     <string name="refresh">Refresh</string>

@@ -61,10 +61,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         TextView info = (TextView) findViewById(R.id.infoText);
-//        info.setVisibility(View.GONE);
-        //TODO: DEBUG
-        info.setText(String.valueOf(globals.intervalHandler.numIntervals()));
-//        info.setText(R.string.keep_running);
+        info.setVisibility(View.GONE);
+        info.setText(R.string.keep_running);
     }
 
     @Override
@@ -100,10 +98,6 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_refresh:
                 updateMonitorText();
                 populateAppList();
-                //Maybe do something to the page so it's clear it has actually refreshed - e.g. pop up a spinner for a second
-                //TODO: DEBUG
-                TextView info = (TextView) findViewById(R.id.infoText);
-                info.setText(String.valueOf(globals.intervalHandler.numIntervals()));
                 return true;
             case R.id.action_togglemonitor:
                 //Set 'toggle monitor' menu and status text
@@ -145,13 +139,19 @@ public class MainActivity extends AppCompatActivity {
         final Context context = this;
         final ProgressBar loading = (ProgressBar) findViewById(R.id.progressBar);
 
-        new AsyncTask<Classifier, Void, Integer>() {
-            @Override
-            protected void onPreExecute(){
-                //Show loading icon
-                loading.setVisibility(View.VISIBLE);
-            }
+        final ListView listView = (ListView) findViewById(R.id.app_list);
+        final TextView appText = (TextView) findViewById(R.id.appListText);
+        final TextView info = (TextView) findViewById(R.id.infoText);
+        final TextView heading = (TextView) findViewById(R.id.heading);
 
+        listView.setVisibility(View.GONE);
+        appText.setVisibility(View.GONE);
+        info.setVisibility(View.GONE);
+        heading.setVisibility(View.GONE);
+        //Show loading icon
+        loading.setVisibility(View.VISIBLE);
+
+        new AsyncTask<Classifier, Void, Integer>() {
             @Override
             protected Integer doInBackground(Classifier... param){
                 //Classify apps
@@ -160,15 +160,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             protected void onPostExecute(Integer numClassified){
-                ListView listView = (ListView) findViewById(R.id.app_list);
-                TextView appText = (TextView) findViewById(R.id.appListText);
-//                TextView info = (TextView) findViewById(R.id.infoText);
-                TextView heading = (TextView) findViewById(R.id.heading);
-
                 //Populate list view
                 if(numClassified > 0){
                     //Populate view with classified apps
-                    appText.setVisibility(View.GONE);
                     listView.setVisibility(View.VISIBLE);
                     heading.setVisibility(View.VISIBLE);
 
@@ -177,15 +171,10 @@ public class MainActivity extends AppCompatActivity {
 
                     //If number of classified apps below threshold, show info text, else hide
                     if(numClassified <= NUM_THRESHOLD){
-//                        info.setVisibility(View.VISIBLE);
-                    } else {
-//                        info.setVisibility(View.GONE);
+                        info.setVisibility(View.VISIBLE);
                     }
                 } else {
                     //Display message about lack of intervals
-                    listView.setVisibility(View.GONE);
-//                    info.setVisibility(View.GONE);
-                    heading.setVisibility(View.GONE);
                     appText.setVisibility(View.VISIBLE);
                 }
 
@@ -212,7 +201,6 @@ public class MainActivity extends AppCompatActivity {
 
         ListView listView = (ListView) findViewById(R.id.app_list);
         TextView appText = (TextView) findViewById(R.id.appListText);
-//      TextView info = (TextView) findViewById(R.id.infoText);
         TextView heading = (TextView) findViewById(R.id.heading);
 
         appText.setVisibility(View.GONE);
