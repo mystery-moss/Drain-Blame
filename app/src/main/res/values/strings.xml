@@ -22,4 +22,5 @@
     <string name="demo_populate">Example classification</string>
     <string name="notification_title">Drain Blame battery monitor</string>
     <string name="notification_content">Monitoring battery level.</string>
+    <string name="demo_text">Example classification for demonstration purposes - classification not accurate!</string>
 </resources>

@@ -202,10 +202,13 @@ public class MainActivity extends AppCompatActivity {
         ListView listView = (ListView) findViewById(R.id.app_list);
         TextView appText = (TextView) findViewById(R.id.appListText);
         TextView heading = (TextView) findViewById(R.id.heading);
+        TextView infoText = (TextView) findViewById(R.id.infoText);
 
         appText.setVisibility(View.GONE);
         listView.setVisibility(View.VISIBLE);
         heading.setVisibility(View.VISIBLE);
+        infoText.setVisibility(View.VISIBLE);
+        infoText.setText(R.string.demo_text);
 
         //Get x apps
         Intent intent = new Intent(Intent.ACTION_MAIN, null);

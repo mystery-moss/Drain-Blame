@@ -12,7 +12,7 @@ import com.moss.drainblame.processes.ProcessHandler;
 public class IntervalHandler {
     private static final String DEBUG = "Monitor Library";
     private static final int MAX_INTERVALS = 1000;  //Max number of intervals to store before looping
-    private static final int SAVE_INTERVAL = 20;    //Save data to file every X recorded intervals
+    private static final int SAVE_INTERVAL = 8;    //Save data to file every X recorded intervals
     private final ProcessHandler processHandler;
     private final AppHandler appHandler;
     private final Context context;
