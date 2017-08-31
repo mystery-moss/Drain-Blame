@@ -1,3 +1,26 @@
 <resources>
-    <string name="app_name">EnergyMonitor</string>
+    <string name="app_name">Drain Blame</string>
+    <string name="monitor_running">The battery monitor is running</string>
+    <string name="monitor_not_running">The battery monitor is not running</string>
+    <string name="monitor_on">Start monitoring</string>
+    <string name="monitor_off">Stop monitoring</string>
+    <string name="too_few_intervals">Apps will be classified when more battery information has been collected. Select \'Example classification\' in the menu to see what this looks like.</string>
+    <string name="read_permissions_error">From Android 7 onwards apps cannot read the list of running processes, so monitoring will not work. However, this is just an evaluation version of this app, so you can have a look around anyway.</string>
+    <string name="error">Error</string>
+    <string name="refresh">Refresh</string>
+    <string name="debug_readfile">Read file</string>
+    <string name="debug_writefile">Write file</string>
+    <string name="keep_running">The longer the battery monitor collects data, the more apps will be classified.</string>
+    <string name="classified_apps">Classified Apps:</string>
+    <string name="high_drain">High drain</string>
+    <string name="medium_drain">Medium drain</string>
+    <string name="low_drain">Low drain</string>
+    <string name="when_network">, when network activity is high</string>
+    <string name="high_confidence">High confidence</string>
+    <string name="medium_confidence">Medium confidence</string>
+    <string name="low_confidence">Low confidence</string>
+    <string name="demo_populate">Example classification</string>
+    <string name="notification_title">Drain Blame battery monitor</string>
+    <string name="notification_content">Monitoring battery level.</string>
+    <string name="demo_text">Example classification for demonstration purposes - classification not accurate!</string>
 </resources>

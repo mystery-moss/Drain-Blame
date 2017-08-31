@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_refresh"
+        android:title="@string/refresh"
+        android:icon="@drawable/refresh"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/action_togglemonitor"
+        android:title="@string/monitor_off"
+        app:showAsAction="never"/>
+
+    <!--<item-->
+        <!--android:id="@+id/action_readfile"-->
+        <!--android:title="@string/debug_readfile"-->
+        <!--app:showAsAction="never"/>-->
+
+    <!--<item-->
+        <!--android:id="@+id/action_writefile"-->
+        <!--android:title="@string/debug_writefile"-->
+        <!--app:showAsAction="never"/>-->
+
+    <item
+        android:id="@+id/demo_populate"
+        android:title="@string/demo_populate"
+        app:showAsAction="never"/>
+
+</menu>
