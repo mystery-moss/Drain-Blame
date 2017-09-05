@@ -111,20 +111,20 @@ public class MainActivity extends AppCompatActivity {
                 }
                 updateMonitorText();
                 return true;
-//            case R.id.action_readfile:
-//                if(FileParsing.readFile(getApplicationContext(), globals.intervalHandler)){
-//                    Toast.makeText(getApplicationContext(), "File read", Toast.LENGTH_SHORT).show();
-//                } else {
-//                    Toast.makeText(getApplicationContext(), "Error reading file", Toast.LENGTH_SHORT).show();
-//                }
-//                return true;
-//            case R.id.action_writefile:
-//                if(FileParsing.writeFile(getApplicationContext(), globals.intervalHandler)){
-//                    Toast.makeText(getApplicationContext(), "File written", Toast.LENGTH_SHORT).show();
-//                } else {
-//                    Toast.makeText(getApplicationContext(), "Error writing file", Toast.LENGTH_SHORT).show();
-//                }
-//                return true;
+            case R.id.action_readfile:
+                if(FileParsing.readFile(getApplicationContext(), globals.intervalHandler)){
+                    Toast.makeText(getApplicationContext(), "File read", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Error reading file", Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            case R.id.action_writefile:
+                if(FileParsing.writeFile(getApplicationContext(), globals.intervalHandler)){
+                    Toast.makeText(getApplicationContext(), "File written", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Error writing file", Toast.LENGTH_SHORT).show();
+                }
+                return true;
             case R.id.demo_populate:
                 demoPopulate();
                 return true;

@@ -127,9 +127,9 @@ public class Classifier {
         unclassified.removeAll(insufficientInfo);
 
         //PASS 1===================================================================================
-        //If more than 80% of intervals containing an app are short, mark it as high drain.
-        //If more than 80% are long, mark as low drain.
-        //If more than 80% are medium, medium drain (unlikely, but hey, it could happen)
+        //If more than x% of intervals containing an app are short, mark it as high drain.
+        //If more than x% are long, mark as low drain.
+        //If more than x% are medium, medium drain (unlikely, but hey, it could happen)
         for(String name : unclassified){
             UnclassifiedApp app = unclassifiedApps.get(name);
             if(app.shortPercent() >= MEDIUM_CONFIDENCE){
