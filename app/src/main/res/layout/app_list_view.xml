@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent" android:layout_height="match_parent">
 
     <ImageView
@@ -17,7 +16,6 @@
 
     <TextView
         android:id="@+id/appName"
-        android:text="App Name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
 
@@ -29,28 +27,14 @@
 
     <TextView
         android:id="@+id/classification"
-        android:text="Classification"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
 
         app:layout_constraintTop_toBottomOf="@+id/appName"
-        app:layout_constraintBottom_toTopOf="@+id/confidence"
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="0dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        app:layout_constraintLeft_toRightOf="@+id/icon" />
-
-    <TextView
-        android:id="@+id/confidence"
-        android:text="Confidence"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/classification"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="0dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Caption"
-        android:textColor="@color/grey"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         app:layout_constraintLeft_toRightOf="@+id/icon" />
 
 

@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
 
         //Check permissions
         if(ProcessHandler.noReadPermission()){
-            //TODO: Make this work properly in final version
             DialogFragment dialog = new ErrorDialog();
             dialog.show(getSupportFragmentManager(), "permission_error");
         }
@@ -59,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         updateMonitorText();
 
 
-        TextView info = (TextView) findViewById(R.id.infoText);
+        TextView info = (TextView) findViewById(R.id.infoText1);
         info.setVisibility(View.GONE);
         info.setText(R.string.keep_running);
     }
@@ -128,6 +127,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.demo_populate:
                 demoPopulate();
                 return true;
+            case R.id.info_page:
+                startActivity(new Intent(this, InfoActivity.class));
+                return true;
             default:
                 return true;
         }
@@ -141,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
 
         final ListView listView = (ListView) findViewById(R.id.app_list);
         final TextView appText = (TextView) findViewById(R.id.appListText);
-        final TextView info = (TextView) findViewById(R.id.infoText);
+        final TextView info = (TextView) findViewById(R.id.infoText1);
         final TextView heading = (TextView) findViewById(R.id.heading);
 
         listView.setVisibility(View.GONE);
@@ -195,14 +197,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //TODO: Temporary, for demo purposes
     private void demoPopulate(){
         final Context context = this;
 
         ListView listView = (ListView) findViewById(R.id.app_list);
         TextView appText = (TextView) findViewById(R.id.appListText);
         TextView heading = (TextView) findViewById(R.id.heading);
-        TextView infoText = (TextView) findViewById(R.id.infoText);
+        TextView infoText = (TextView) findViewById(R.id.infoText1);
 
         appText.setVisibility(View.GONE);
         listView.setVisibility(View.VISIBLE);
@@ -217,20 +218,20 @@ public class MainActivity extends AppCompatActivity {
         Collections.shuffle(apps);
 
         int index = 0;
-        ClassifiedApp[] classifiedApps = new ClassifiedApp[7];
-        int[] classification =  {2, 2, 2, 1, 1, 0, 0};
-        int[] confidence =      {2, 2, 1, 2, 1, 2, 0};
+        ClassifiedApp[] classifiedApps = new ClassifiedApp[5];
+        int[] classification =  {2, 2, 2, 1, 1};
+        int[] confidence =      {2, 2, 1, 2, 1};
 
         //Turn them into classifiedApps
         for(ResolveInfo info : apps){
-            if(index == 7){
+            if(index == 5){
                 break;
             }
             classifiedApps[index] = new ClassifiedApp(info.activityInfo.applicationInfo.packageName, classification[index], confidence[index], false, index == 1 || index == 2);
             ++index;
         }
 
-        if(index != 7){
+        if(index != 5){
             classifiedApps = Arrays.copyOf(classifiedApps, index);
         }
 

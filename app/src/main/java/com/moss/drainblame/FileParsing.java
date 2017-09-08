@@ -14,7 +14,6 @@ import com.moss.drainblame.intervals.Interval;
 import com.moss.drainblame.intervals.IntervalHandler;
 
 public class FileParsing {
-    //TODO: Look into making error catching here more robust? E.g. have closing files in 'finally' block rather than within the try?
     private static final String DEBUG = "File Parsing";
     private static final String FILENAME = "intervalData";
     private static final int VERSION = 6;

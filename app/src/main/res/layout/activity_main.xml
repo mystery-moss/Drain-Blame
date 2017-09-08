@@ -37,18 +37,19 @@
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
     <TextView
-        android:id="@+id/infoText"
+        android:id="@+id/infoText1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="14dp"
         android:gravity="center_horizontal"
         android:text="@string/keep_running"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/monitorStatus" />
+        app:layout_constraintTop_toBottomOf="@+id/monitorStatus"
+        app:layout_constraintHorizontal_bias="0.468" />
 
     <TextView
         android:id="@+id/appListText"
@@ -94,7 +95,7 @@
         android:text="@string/classified_apps"
         android:textAppearance="@style/TextAppearance.AppCompat.Menu"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/infoText"
+        app:layout_constraintTop_toBottomOf="@+id/infoText1"
         app:layout_constraintRight_toRightOf="parent" />
 
     <LinearLayout

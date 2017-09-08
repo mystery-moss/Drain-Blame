@@ -73,13 +73,12 @@ public class ProcessHandler {
         firstSample = false;
     }
 
-    //TODO: Robustify - check best practices for handling BufferedReaders
     private static String getName(int pid){
         BufferedReader reader = null;
         String name = null;
         try {
             reader = new BufferedReader(new FileReader(String.format(Locale.US, CMDLINE, pid)));
-            name = reader.readLine();   //TODO: Robustify! See getNames
+            name = reader.readLine();
         } catch (IOException e) {
             Log.e(DEBUG, "Read error extracting name for process " + pid + ": " + e);
             return null;
@@ -100,7 +99,7 @@ public class ProcessHandler {
         String line = null;
         try {
             reader = new BufferedReader(new FileReader(String.format(Locale.US, STAT, pid)));
-            line = reader.readLine(); //TODO: As above
+            line = reader.readLine();
         } catch (IOException e) {
             Log.e(DEBUG, "Read error extracting stat for process " + pid + ": " + e);
             return null;

@@ -11,7 +11,7 @@ import com.moss.drainblame.intervals.Interval;
 public class Classifier {
     private static final String DEBUG = "Classifier";
     private static final int MIN_INTERVALS = 10;     //Minimum total intervals required to attempt classification
-    private static final int MIN_APP_INTERVALS = 4;  //Minimum intervals for a single app required
+    private static final int MIN_APP_INTERVALS = 6;  //Minimum intervals for a single app required
     private static final float HIGH_CONFIDENCE = 0.75f;
     private static final float MEDIUM_CONFIDENCE = 0.65f;
 
@@ -218,22 +218,6 @@ public class Classifier {
     private void classifyApp(App app, ArrayList<ClassifiedApp> list, int classification, int confidence, boolean network){
         list.add(new ClassifiedApp(app.name, classification, confidence, app.unknownPackage, network));
     }
-
-    private void removeHighDrain(String target, ArrayList<Interval> intervals, ArrayList<Interval> toRemove){
-        for(Interval interval : intervals){
-            if(interval.length < shortint){
-                for(App proc : interval.activeApps){
-                    if(proc.name.equals(target)){
-                        toRemove.add(interval);
-                        break;
-                    }
-                }
-            }
-        }
-        intervals.removeAll(toRemove);
-        toRemove.clear();
-    }
-
 
     private void setCPUThreshold(){
         cpuThreshold = 200;
