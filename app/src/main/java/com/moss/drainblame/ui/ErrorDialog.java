@@ -16,7 +16,7 @@ public class ErrorDialog extends DialogFragment {
                 .setMessage(R.string.read_permissions_error)
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id){
-                //TODO: Quit the app?
+                //TODO: Quit the app? That seems a bit rude...
             }
         });
 

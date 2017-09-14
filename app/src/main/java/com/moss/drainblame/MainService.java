@@ -36,9 +36,9 @@ public class MainService extends Service {
         //Create taskbar notification
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.notification_icon)
+                .setPriority(NotificationCompat.PRIORITY_MIN)
                 .setContentTitle(context.getString(R.string.notification_title))
                 .setContentText(context.getString(R.string.notification_content))
-                //.setCategory(Notification.CATEGORY_SERVICE)
                 .setOngoing(true);
         Intent notificationIntent = new Intent(this, MainActivity.class);
 
@@ -84,6 +84,9 @@ public class MainService extends Service {
         catch(Exception e){
             Log.d(DEBUG, "Receivers not registered");
         }
+
+        //Save interval data to file
+        FileParsing.writeFile(context, globals.intervalHandler);
         
         globals.intervalHandler.shutdown();
 

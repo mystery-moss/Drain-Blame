@@ -12,7 +12,7 @@ import com.moss.drainblame.processes.ProcessHandler;
 public class IntervalHandler {
     private static final String DEBUG = "Monitor Library";
     private static final int MAX_INTERVALS = 1000;  //Max number of intervals to store before looping
-    private static final int SAVE_INTERVAL = 8;    //Save data to file every X recorded intervals
+    private static final int SAVE_INTERVAL = 8;     //Save data to file every X recorded intervals
     private final ProcessHandler processHandler;
     private final AppHandler appHandler;
     private final Context context;
@@ -34,8 +34,10 @@ public class IntervalHandler {
     private boolean maxIntervals;
     private final Handler handler;
     private ProcessPoller processPoller;
+
     //Hardcoded minimum CPU tick threshold to consider a process as 'active'
-    private long threshold = 50;
+    //Ideally, this should be dynamic and determined by the classifier
+    private long threshold = 200;
 
     //Control=======================================================================================
     public IntervalHandler(ProcessHandler processHandler, AppHandler appHandler, Context context){
@@ -57,7 +59,7 @@ public class IntervalHandler {
         stopPolling();
     }
 
-    //TODO: Ideally gracefully handle changing threshold partway through an interval
+    //TODO: Gracefully handle changing threshold partway through an interval
     public void setThreshold(long t){
         threshold = t;
     }
@@ -88,7 +90,7 @@ public class IntervalHandler {
         Log.d(DEBUG, "Charger disconnected");
     }
 
-    //TODO: Refactor these two out into a separate, exapdable resource tracking thing
+    //TODO: Refactor these two out into a separate, expandable resource tracking component
     //Screen tracking===============================================================================
     public void setScreenOn(){
         if(!screenOn) {
@@ -117,8 +119,8 @@ public class IntervalHandler {
         }
         return screenOnDuration;
     }
-    //TODO: Currently need to remember to call 'resetScreenCounter' - better to call it when 'getScreenOnDuration()' is called, if this is appropriate behaviour
-        //As below for network!
+    //NOTE: Currently need to remember to call 'resetScreenCounter'
+    //Ideally, call it automatically when 'getScreenOnDuration()' is called, if appropriate
 
     //Network tracking==============================================================================
     private long getNetworkBytes(){
@@ -126,7 +128,7 @@ public class IntervalHandler {
         long txnew = TrafficStats.getTotalTxBytes();
 
         if(rxnew - netRx < 0 || txnew - netTx < 0){
-            return 0;
+            return rxnew + txnew;
         }
 
         return (rxnew - netRx) + (txnew - netTx);
@@ -202,48 +204,13 @@ public class IntervalHandler {
                processPoller = null;
             }
         }
-
-//        Intent intent = new Intent(context, AlarmReceiver.class);
-//        final PendingIntent pIntent = PendingIntent.getBroadcast(context, AlarmReceiver.REQUEST_CODE,
-//                intent, PendingIntent.FLAG_UPDATE_CURRENT);
-//        long firstMillis = System.currentTimeMillis();
-//
-//        if (alarm != null){
-//            alarm.cancel (pIntent);
-//        }
     }
 
     private void startPolling(int pollRate){
         if(pollRate < 1){
             pollRate = 1;
         }
-
-        //If poll rate is below 60 seconds, use a 'Runnable' task
-        if(pollRate < 60){
-            processPoller = new ProcessPoller(handler, pollRate, processHandler);
-            handler.post(processPoller);
-        }
-        //Else use an alarm
-//        else {
-            //TODO: Needs to receive a referenced to ProcessHandler so it can call parseProcs
-//        //Increase context capabilities?
-//        context = context.getApplicationContext();
-//
-//        Intent intent = new Intent(context, AlarmReceiver.class);
-//        final PendingIntent pIntent = PendingIntent.getBroadcast(context, AlarmReceiver.REQUEST_CODE,
-//                intent, PendingIntent.FLAG_UPDATE_CURRENT);
-//        long firstMillis = System.currentTimeMillis();
-//
-//        //Halt any existing alarms
-//        if (alarm != null){
-//            alarm.cancel (pIntent);
-//        }
-//
-//        alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-//        //Fire alarm immediately, then every thirty seconds
-//        //TODO: Why does it only trigger every minute, not every 30 seconds?
-//        //And even that is pretty inconsistent...
-//        alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, firstMillis, 30 * 1000, pIntent);
-//        }
+        processPoller = new ProcessPoller(handler, pollRate, processHandler);
+        handler.post(processPoller);
     }
 }

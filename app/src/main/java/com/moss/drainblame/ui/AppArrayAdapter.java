@@ -37,7 +37,6 @@ public class AppArrayAdapter extends ArrayAdapter {
             viewHolder = new ViewHolderItem();
             viewHolder.appName = convertView.findViewById(R.id.appName);
             viewHolder.classification = convertView.findViewById(R.id.classification);
-            viewHolder.confidence = convertView.findViewById(R.id.confidence);
             viewHolder.image = convertView.findViewById(R.id.icon);
 
             convertView.setTag(viewHolder);
@@ -57,7 +56,6 @@ public class AppArrayAdapter extends ArrayAdapter {
         }
 
         //Flags for setting colours
-        boolean greyedOut = false;
         boolean red = false;
 
         //Get app name
@@ -87,31 +85,9 @@ public class AppArrayAdapter extends ArrayAdapter {
         }
         viewHolder.classification.setText(text);
 
-        //Set confidence text
-        switch(app.confidence){
-            case Classifier.HIGH:
-                viewHolder.confidence.setText(context.getString(R.string.high_confidence));
-                break;
-            case Classifier.MEDIUM:
-                viewHolder.confidence.setText(context.getString(R.string.medium_confidence));
-                break;
-            case Classifier.LOW:
-                viewHolder.confidence.setText(context.getString(R.string.low_confidence));
-                greyedOut = true;
-        }
-
         //Set colours
-        if(greyedOut){
-            viewHolder.appName.setTextColor(ContextCompat.getColor(context, R.color.grey));
-            if(red){
-                viewHolder.classification.setTextColor(ContextCompat.getColor(context, R.color.paleRed));
-            } else {
-                viewHolder.classification.setTextColor(ContextCompat.getColor(context, R.color.grey));
-            }
-        } else {
-            if(red) {
-                viewHolder.classification.setTextColor(ContextCompat.getColor(context, R.color.red));
-            }
+        if(red) {
+            viewHolder.classification.setTextColor(ContextCompat.getColor(context, R.color.red));
         }
 
         return convertView;

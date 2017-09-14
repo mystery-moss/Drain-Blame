@@ -11,7 +11,7 @@ import com.moss.drainblame.intervals.Interval;
 public class Classifier {
     private static final String DEBUG = "Classifier";
     private static final int MIN_INTERVALS = 10;     //Minimum total intervals required to attempt classification
-    private static final int MIN_APP_INTERVALS = 4;  //Minimum intervals for a single app required
+    private static final int MIN_APP_INTERVALS = 6;  //Minimum intervals for a single app required
     private static final float HIGH_CONFIDENCE = 0.75f;
     private static final float MEDIUM_CONFIDENCE = 0.65f;
 
@@ -50,22 +50,21 @@ public class Classifier {
     }
 
     public ClassifiedApp[] getClassifiedApps(){
-        ClassifiedApp[] output = new ClassifiedApp[classifiedApps.size()];
+        ArrayList<ClassifiedApp> output = new ArrayList<>();
 
-        //Sort array in order high, medium, low drain and high, medium, low confidence
-        //This got bolted on at the end, can you tell?
-        int index = 0;
-        for(int i = HIGH; i > -1; --i){
-            for(int j = HIGH; j > -1; --j){
+        //Sort array in order high, medium drain and high, medium confidence.
+        //Remove any low confidence and low drain apps
+        for(int i = HIGH; i > LOW; --i){
+            for(int j = HIGH; j > LOW; --j){
                 for(ClassifiedApp app : classifiedApps){
                     if(app.classification == i && app.confidence == j){
-                        output[index++] = app;
+                        output.add(app);
                     }
                 }
             }
         }
 
-        return output;
+        return output.toArray(new ClassifiedApp[0]);
     }
 
     public int classify(){
@@ -219,22 +218,6 @@ public class Classifier {
     private void classifyApp(App app, ArrayList<ClassifiedApp> list, int classification, int confidence, boolean network){
         list.add(new ClassifiedApp(app.name, classification, confidence, app.unknownPackage, network));
     }
-
-    private void removeHighDrain(String target, ArrayList<Interval> intervals, ArrayList<Interval> toRemove){
-        for(Interval interval : intervals){
-            if(interval.length < shortint){
-                for(App proc : interval.activeApps){
-                    if(proc.name.equals(target)){
-                        toRemove.add(interval);
-                        break;
-                    }
-                }
-            }
-        }
-        intervals.removeAll(toRemove);
-        toRemove.clear();
-    }
-
 
     private void setCPUThreshold(){
         cpuThreshold = 200;

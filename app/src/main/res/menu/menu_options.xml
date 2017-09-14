@@ -28,4 +28,9 @@
         android:title="@string/demo_populate"
         app:showAsAction="never"/>
 
+    <item
+        android:id="@+id/info_page"
+        android:title="@string/title_activity_info"
+        app:showAsAction="never"/>
+
 </menu>

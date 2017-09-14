@@ -5,11 +5,11 @@
     <string name="monitor_on">Start monitoring</string>
     <string name="monitor_off">Stop monitoring</string>
     <string name="too_few_intervals">Apps will be classified when more battery information has been collected. Select \'Example classification\' in the menu to see what this looks like.</string>
-    <string name="read_permissions_error">From Android 7 onwards apps cannot read the list of running processes, so monitoring will not work. However, this is just an evaluation version of this app, so you can have a look around anyway.</string>
+    <string name="read_permissions_error">From Android 7 onwards apps cannot read the list of running processes, so monitoring will not work - Drain Blame is not supported on this device!</string>
     <string name="error">Error</string>
     <string name="refresh">Refresh</string>
-    <string name="debug_readfile">Read file</string>
-    <string name="debug_writefile">Write file</string>
+    <string name="debug_readfile">Read interval data</string>
+    <string name="debug_writefile">Write interval data</string>
     <string name="keep_running">The longer the battery monitor collects data, the more apps will be classified.</string>
     <string name="classified_apps">Classified Apps:</string>
     <string name="high_drain">High drain</string>
@@ -23,4 +23,7 @@
     <string name="notification_title">Drain Blame battery monitor</string>
     <string name="notification_content">Monitoring battery level.</string>
     <string name="demo_text">Example classification for demonstration purposes - classification not accurate!</string>
+    <string name="title_activity_info">About</string>
+    <string name="info_text1">Drain Blame is designed to identify apps which consume a lot of power. It runs in the background, monitoring the battery level and recording which apps are running. If it detects any apps which are associated with a high battery drain rate, these will be displayed in a list.</string>
+    <string name="info_text2">When you first start it up, no apps have yet been detected. The longer you let it run in the background, the more data it can collect and the more classifications it can make. Depending on how often you use this device, it may take a few days before any classification can be made.</string>
 </resources>
