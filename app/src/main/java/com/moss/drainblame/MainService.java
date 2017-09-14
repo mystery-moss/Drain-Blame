@@ -36,6 +36,7 @@ public class MainService extends Service {
         //Create taskbar notification
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.notification_icon)
+                .setPriority(NotificationCompat.PRIORITY_MIN)
                 .setContentTitle(context.getString(R.string.notification_title))
                 .setContentText(context.getString(R.string.notification_content))
                 .setOngoing(true);
