@@ -6,6 +6,10 @@ import android.support.v7.widget.Toolbar;
 
 import com.moss.drainblame.R;
 
+/*
+ *  Page displaying information on app
+ */
+
 public class InfoActivity extends AppCompatActivity {
 
     @Override

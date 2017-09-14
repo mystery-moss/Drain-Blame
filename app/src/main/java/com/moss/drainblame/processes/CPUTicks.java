@@ -1,6 +1,8 @@
 package com.moss.drainblame.processes;
 
-//Holds tick information from /proc/[pid]/stat
+/*
+ *  Holds tick information from /proc/[pid]/stat
+ */
 
 public class CPUTicks {
     public final long ticks;    //(14) utime + (15) stime

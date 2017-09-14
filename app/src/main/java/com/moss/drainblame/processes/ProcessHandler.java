@@ -11,7 +11,7 @@ import java.util.Locale;
 
 import com.moss.drainblame.apps.AppHandler;
 
-/**
+/*
  * Adapted from https://github.com/jaredrummler/AndroidProcesses
  * Queries for currently running processes, keeps track of those previously observed
  */
@@ -73,6 +73,7 @@ public class ProcessHandler {
         firstSample = false;
     }
 
+    //Extract name from /proc/[pid]/cmdline
     private static String getName(int pid){
         BufferedReader reader = null;
         String name = null;
@@ -94,6 +95,7 @@ public class ProcessHandler {
         return name == null ? null : name.trim();
     }
 
+    //Extract information from /proc/[pid]/stat
     private static CPUTicks getTicks(int pid){
         BufferedReader reader = null;
         String line = null;
@@ -124,7 +126,7 @@ public class ProcessHandler {
     }
 
     //Check whether we are allowed to read information in /proc
-    //Lifted straight from AndroidProcesses - more info available there
+    //Lifted straight from https://github.com/jaredrummler/AndroidProcesses - see for more info
     public static boolean noReadPermission() {
         BufferedReader reader = null;
         try {

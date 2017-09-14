@@ -14,6 +14,11 @@ import com.moss.drainblame.receivers.BatteryReceiver;
 import com.moss.drainblame.receivers.ScreenStateReceiver;
 import com.moss.drainblame.ui.MainActivity;
 
+/*
+ *  Background service - creates notification to avoid being killed so monitoring components remain
+ *  active. Registers receivers for battery level and screen state intents.
+ */
+
 public class MainService extends Service {
     private static final String DEBUG = "MainService";
     private static final int NOTIFICATION_ID = 956231;
@@ -50,17 +55,17 @@ public class MainService extends Service {
 
         startForeground(NOTIFICATION_ID, mBuilder.build());
 
-        //Start monitor components
+        //Register receivers
         globals = ApplicationGlobals.get(context);
 
-        //Register screen state receiver
+        //Screen state receiver
         screenStateReceiver = new ScreenStateReceiver(globals.intervalHandler);
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         context.registerReceiver(screenStateReceiver, new IntentFilter(filter));
         screenStateReceiver.startTracking(context);
 
-        //Register battery level change receiver
+        //Battery state change receiver
         batteryReceiver = new BatteryReceiver(globals.intervalHandler);
         context.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 

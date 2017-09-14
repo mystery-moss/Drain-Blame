@@ -11,6 +11,10 @@ import android.view.Display;
 
 import com.moss.drainblame.intervals.IntervalHandler;
 
+/*
+ *  Listen for changes in screen state
+ */
+
 public class ScreenStateReceiver extends BroadcastReceiver {
     private static final String DEBUG = "ScreenStateReceiver";
     private final IntervalHandler intervalHandler;

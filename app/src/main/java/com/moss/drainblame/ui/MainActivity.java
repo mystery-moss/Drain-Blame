@@ -30,9 +30,15 @@ import com.moss.drainblame.classifier.ClassifiedApp;
 import com.moss.drainblame.classifier.Classifier;
 import com.moss.drainblame.processes.ProcessHandler;
 
+/*
+ *  Main UI - display whenever app is opened
+ */
+
 public class MainActivity extends AppCompatActivity {
+    //Display info text if less than given number total app classifications
+    private static final int NUM_THRESHOLD = 2;
     private static final String DEBUG = "MainActivity";
-    private static final int NUM_THRESHOLD = 4;
+
     private ApplicationGlobals globals;
 
     @Override
@@ -43,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        //Instantiate object if it doesn't exist
         globals = ApplicationGlobals.get(getApplicationContext());
 
         //Check permissions
@@ -51,21 +58,17 @@ public class MainActivity extends AppCompatActivity {
             dialog.show(getSupportFragmentManager(), "permission_error");
         }
 
-        //Start service, update status text
+        //Start service, update top status text
         if(globals.serviceEnabled) {
             startService(new Intent(this, MainService.class));
         }
         updateMonitorText();
-
-
-        TextView info = (TextView) findViewById(R.id.infoText1);
-        info.setVisibility(View.GONE);
-        info.setText(R.string.keep_running);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        //Show list of classified apps, update UI appropriately
         populateAppList();
     }
 
@@ -111,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
                 updateMonitorText();
                 return true;
             case R.id.action_readfile:
+                //Read interval data file
                 if(FileParsing.readFile(getApplicationContext(), globals.intervalHandler)){
                     Toast.makeText(getApplicationContext(), "File read", Toast.LENGTH_SHORT).show();
                 } else {
@@ -118,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return true;
             case R.id.action_writefile:
+                //Write interval data to file
                 if(FileParsing.writeFile(getApplicationContext(), globals.intervalHandler)){
                     Toast.makeText(getApplicationContext(), "File written", Toast.LENGTH_SHORT).show();
                 } else {
@@ -135,7 +140,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //Call app classifier in a separate thread to avoid potential slowdowns
     private void populateAppList(){
         final Classifier classifier = new Classifier(globals.intervalHandler.getIntervals(), globals.intervalHandler.numIntervals());
         final Context context = this;
@@ -143,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
 
         final ListView listView = (ListView) findViewById(R.id.app_list);
         final TextView appText = (TextView) findViewById(R.id.appListText);
-        final TextView info = (TextView) findViewById(R.id.infoText1);
+        final TextView info = (TextView) findViewById(R.id.infoText);
         final TextView heading = (TextView) findViewById(R.id.heading);
 
         listView.setVisibility(View.GONE);
@@ -153,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
         //Show loading icon
         loading.setVisibility(View.VISIBLE);
 
+        //Call app classifier in a separate thread to avoid potential slowdowns
         new AsyncTask<Classifier, Void, Integer>() {
             @Override
             protected Integer doInBackground(Classifier... param){
@@ -180,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
                     appText.setVisibility(View.VISIBLE);
                 }
 
-                //Remove spinny thing
+                //Remove spinning progress widget
                 loading.setVisibility(View.GONE);
             }
         }.execute(classifier);
@@ -197,13 +202,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //Populate classified app list to show how it looks - choose and classify apps randomly
     private void demoPopulate(){
         final Context context = this;
 
         ListView listView = (ListView) findViewById(R.id.app_list);
         TextView appText = (TextView) findViewById(R.id.appListText);
         TextView heading = (TextView) findViewById(R.id.heading);
-        TextView infoText = (TextView) findViewById(R.id.infoText1);
+        TextView infoText = (TextView) findViewById(R.id.infoText);
 
         appText.setVisibility(View.GONE);
         listView.setVisibility(View.VISIBLE);
@@ -211,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
         infoText.setVisibility(View.VISIBLE);
         infoText.setText(R.string.demo_text);
 
-        //Get x apps
+        //Get some apps at random
         Intent intent = new Intent(Intent.ACTION_MAIN, null);
         intent .addCategory(Intent.CATEGORY_LAUNCHER);
         List<ResolveInfo> apps = context.getPackageManager().queryIntentActivities(intent , 0);
@@ -222,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
         int[] classification =  {2, 2, 2, 1, 1};
         int[] confidence =      {2, 2, 1, 2, 1};
 
-        //Turn them into classifiedApps
+        //Turn 5 of them into classifiedApps
         for(ResolveInfo info : apps){
             if(index == 5){
                 break;
@@ -231,10 +237,13 @@ public class MainActivity extends AppCompatActivity {
             ++index;
         }
 
+        //Shrink array to avoid nulls if less than 5 apps in total are installed on the device
+        //Hey, it's good to be thorough...
         if(index != 5){
             classifiedApps = Arrays.copyOf(classifiedApps, index);
         }
 
+        //Display list
         AppArrayAdapter adapter = new AppArrayAdapter(context, classifiedApps);
         listView.setAdapter(adapter);
     }

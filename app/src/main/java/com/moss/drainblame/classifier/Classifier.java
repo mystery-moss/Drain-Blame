@@ -8,13 +8,19 @@ import java.util.HashSet;
 import com.moss.drainblame.apps.App;
 import com.moss.drainblame.intervals.Interval;
 
+/*
+ *  Classify apps. Currently instantiated once per classification, so could be converted to a
+ *  single static method.
+ */
+
 public class Classifier {
     private static final String DEBUG = "Classifier";
     private static final int MIN_INTERVALS = 10;     //Minimum total intervals required to attempt classification
-    private static final int MIN_APP_INTERVALS = 6;  //Minimum intervals for a single app required
+    private static final int MIN_APP_INTERVALS = 6;  //Minimum intervals to classify a single app
     private static final float HIGH_CONFIDENCE = 0.75f;
     private static final float MEDIUM_CONFIDENCE = 0.65f;
 
+    //Classification/confidence levels
     public static final int HIGH = 2;
     public static final int MEDIUM = 1;
     public static final int LOW = 0;
@@ -23,26 +29,29 @@ public class Classifier {
     private int size;
 
     private long cpuThreshold;
-    private long shortint;
-    private long longint;
+    //Network activity threshold to class interval as being 'high network'
     private long networkThreshold;
 
+    //Cutoff points for different interval classes
+    private long shortint;
+    private long longint;
+
+    //Final list
     private ArrayList<ClassifiedApp> classifiedApps;
+
+    //Initial list
     private HashMap<String, UnclassifiedApp> unclassifiedApps;
-    private HashSet<String> highDrain;
-    private HashSet<String> mediumDrain;
-    private HashSet<String> lowDrain;
-    private HashSet<String> unclassified;
-    private HashSet<String> insufficientInfo;
+
+    //Intermediate lists
+    private HashSet<String> highDrain = new HashSet<>();
+    private HashSet<String> mediumDrain = new HashSet<>();
+    private HashSet<String> lowDrain = new HashSet<>();
+    private HashSet<String> unclassified = new HashSet<>();
+    private HashSet<String> insufficientInfo = new HashSet<>();
 
     public Classifier(Interval[] intervalArray, int size){
         classifiedApps = new ArrayList<>();
         unclassifiedApps = new HashMap<>();
-        highDrain = new HashSet<>();
-        mediumDrain = new HashSet<>();
-        lowDrain = new HashSet<>();
-        unclassified = new HashSet<>();
-        insufficientInfo = new HashSet<>();
 
         this.size = size;
         //Convert to list for ease of removing intervals, truncating to appropriate size as required
@@ -52,7 +61,7 @@ public class Classifier {
     public ClassifiedApp[] getClassifiedApps(){
         ArrayList<ClassifiedApp> output = new ArrayList<>();
 
-        //Sort array in order high, medium drain and high, medium confidence.
+        //Sort output array in order high, medium drain and high, medium confidence.
         //Remove any low confidence and low drain apps
         for(int i = HIGH; i > LOW; --i){
             for(int j = HIGH; j > LOW; --j){
@@ -76,7 +85,11 @@ public class Classifier {
         setThresholds();
 
         //SETUP====================================================================================
-        //Remove any process in interval with ticks below CPU threshold
+        //Remove any app in interval with ticks below CPU threshold
+        //Not required if cpuThreshold == hardcoded value in intervalHandler
+        //NB: Intervals are references to those stored in intervalHandler; deleting apps here
+        //permanently removes them from the stored interval data! To avoid this, could perform this
+        //check when recording app interval lengths instead
         for(Interval interval : intervals){
             ArrayList<App> pastThreshold = new ArrayList<>();
             for(App app : interval.activeApps){
@@ -126,9 +139,7 @@ public class Classifier {
         unclassified.removeAll(insufficientInfo);
 
         //PASS 1===================================================================================
-        //If more than x% of intervals containing an app are short, mark it as high drain.
-        //If more than x% are long, mark as low drain.
-        //If more than x% are medium, medium drain (unlikely, but hey, it could happen)
+        //If more than x% of intervals containing an app are short, mark it as high drain, etc
         for(String name : unclassified){
             UnclassifiedApp app = unclassifiedApps.get(name);
             if(app.shortPercent() >= MEDIUM_CONFIDENCE){
@@ -190,7 +201,7 @@ public class Classifier {
 
         //PASS 3===================================================================================
         //Have now classified all high and medium confidence apps. Attempt low confidence classification:
-        //Combine high drain and medium drain interval proportion to attribute app as medium drain
+        //Combine high drain and medium drain interval proportion to classify app as medium drain
         for(String name : unclassified){
             UnclassifiedApp app = unclassifiedApps.get(name);
             //If short + medium >= MEDIUM_CONFIDENCE
@@ -208,6 +219,7 @@ public class Classifier {
         unclassified.removeAll(mediumDrain);
         unclassified.removeAll(lowDrain);
 
+        //Return number of classified apps
         return classifiedApps.size();
     }
 
@@ -223,6 +235,7 @@ public class Classifier {
         cpuThreshold = 200;
     }
 
+    //Calculate thresholds for interval lengths and hardware resource activities
     private void setThresholds(){
         //Get average interval length + network usage
         long avgBatt = 0;
@@ -235,7 +248,7 @@ public class Classifier {
         avgBatt /= size;
         avgNet /= size;
 
-        //Short is <3/4 of average, long >5/4
+        //Short interval is <3/4 of average, long >5/4
         shortint = (avgBatt/4) * 3;
         longint = (avgBatt/4) * 5;
 

@@ -15,6 +15,10 @@ import com.moss.drainblame.R;
 import com.moss.drainblame.classifier.ClassifiedApp;
 import com.moss.drainblame.classifier.Classifier;
 
+/*
+ *  Display list of classified apps
+ */
+
 public class AppArrayAdapter extends ArrayAdapter {
     private final Context context;
     private final ClassifiedApp[] apps;
@@ -29,6 +33,7 @@ public class AppArrayAdapter extends ArrayAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent){
+        //Using the 'viewHolder' pattern
         ViewHolderItem viewHolder;
         if(convertView == null){
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -55,7 +60,7 @@ public class AppArrayAdapter extends ArrayAdapter {
             }
         }
 
-        //Flags for setting colours
+        //Flag for setting text colour
         boolean red = false;
 
         //Get app name
@@ -85,7 +90,7 @@ public class AppArrayAdapter extends ArrayAdapter {
         }
         viewHolder.classification.setText(text);
 
-        //Set colours
+        //Set text colour
         if(red) {
             viewHolder.classification.setTextColor(ContextCompat.getColor(context, R.color.red));
         }

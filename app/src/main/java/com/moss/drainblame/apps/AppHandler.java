@@ -20,7 +20,7 @@ public class AppHandler {
         this.appContext = appContext;
     }
 
-    //Return app reference based on /proc/[pid]/cmdline, creating if none exists
+    //Return App reference based on /proc/[pid]/cmdline, creating one if none exists
     public App getApp(String processName){
         //Find ApplicationInfo associated with this name
         PackageManager pm = appContext.getPackageManager();

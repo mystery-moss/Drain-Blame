@@ -4,7 +4,9 @@ import android.os.Handler;
 
 import com.moss.drainblame.processes.ProcessHandler;
 
-//Periodically calls parseProcs()
+/*
+ *  Periodically calls parseProcs()
+ */
 
 public class ProcessPoller implements Runnable{
     private final Handler handler;

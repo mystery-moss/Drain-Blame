@@ -37,7 +37,7 @@
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
     <TextView
-        android:id="@+id/infoText1"
+        android:id="@+id/infoText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
@@ -62,7 +62,6 @@
         android:gravity="center_horizontal"
         android:text="@string/too_few_intervals"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -95,7 +94,7 @@
         android:text="@string/classified_apps"
         android:textAppearance="@style/TextAppearance.AppCompat.Menu"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/infoText1"
+        app:layout_constraintTop_toBottomOf="@+id/infoText"
         app:layout_constraintRight_toRightOf="parent" />
 
     <LinearLayout

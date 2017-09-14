@@ -13,13 +13,17 @@ import com.moss.drainblame.apps.App;
 import com.moss.drainblame.intervals.Interval;
 import com.moss.drainblame.intervals.IntervalHandler;
 
+/*
+ *  Handle intervalData file
+ */
+
 public class FileParsing {
     private static final String DEBUG = "File Parsing";
     private static final String FILENAME = "intervalData";
     private static final int VERSION = 6;
 
-    private static final int DATA_FIELDS = 4;       //Number of data fields at start of each interval line
-    private static final int APP_FIELDS = 3;        //Number of data fields for each app
+    private static final int DATA_FIELDS = 4; //Number of data fields at start of each interval line
+    private static final int APP_FIELDS = 3;  //Number of data fields for each recorded app
 
     //Check whether external storage can be written
     private static boolean checkStorage(){
@@ -65,6 +69,7 @@ public class FileParsing {
         return true;
     }
 
+    //Read from external storage, populate list of intervals in IntervalHandler
     public static boolean readFile(Context context, IntervalHandler monitorLibrary){
         Log.d(DEBUG, "Reading intervals from file");
         if(!checkStorageReadOnly()){
@@ -121,7 +126,7 @@ public class FileParsing {
         String[] data = string.split(" ");
 
         //Check overall formatting correct
-        if(data.length < 3){
+        if(data.length < DATA_FIELDS){
             Log.e(DEBUG, "Error parsing line in data file");
             return;
         }

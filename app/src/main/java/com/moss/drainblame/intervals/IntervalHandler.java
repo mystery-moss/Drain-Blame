@@ -9,16 +9,19 @@ import com.moss.drainblame.FileParsing;
 import com.moss.drainblame.apps.AppHandler;
 import com.moss.drainblame.processes.ProcessHandler;
 
+/*
+ *  Keep track of battery intervals, record app activities
+ */
+
 public class IntervalHandler {
     private static final String DEBUG = "Monitor Library";
-    private static final int MAX_INTERVALS = 1000;  //Max number of intervals to store before looping
+    private static final int MAX_INTERVALS = 1000;  //Max number of intervals to store before overwriting old ones
     private static final int SAVE_INTERVAL = 8;     //Save data to file every X recorded intervals
     private final ProcessHandler processHandler;
     private final AppHandler appHandler;
     private final Context context;
 
     private int batteryLevel;
-    private boolean charging;
 
     private boolean screenOn;
     private long screenOnStart;
@@ -31,12 +34,13 @@ public class IntervalHandler {
     private long intervalStart;
     private final Interval[] intervals;
     private int intervalIndex;
-    private boolean maxIntervals;
+    private boolean maxIntervals;   //Have recorded 1000 intervals
     private final Handler handler;
     private ProcessPoller processPoller;
 
     //Hardcoded minimum CPU tick threshold to consider a process as 'active'
-    //Ideally, this should be dynamic and determined by the classifier
+    //Ideally, this should be dynamic and determined by the classifier, or a low value, with the
+    //classifier using its own dynamic threshold
     private long threshold = 200;
 
     //Control=======================================================================================
@@ -47,7 +51,6 @@ public class IntervalHandler {
         handler = new Handler();
         firstInterval = true;
         screenOn = false;
-        charging = false;
         batteryLevel = -1;
         intervals = new Interval[MAX_INTERVALS];
         intervalIndex = 0;
@@ -59,11 +62,6 @@ public class IntervalHandler {
         stopPolling();
     }
 
-    //TODO: Gracefully handle changing threshold partway through an interval
-    public void setThreshold(long t){
-        threshold = t;
-    }
-
     //Battery tracking==============================================================================
     public void setBatteryLevel(int newLevel) {
         if(newLevel < batteryLevel){
@@ -73,7 +71,6 @@ public class IntervalHandler {
     }
 
     public void chargerConnected(){
-        charging = true;
         stopPolling();
         //Clear processes and app ticks
         processHandler.reset();
@@ -83,7 +80,6 @@ public class IntervalHandler {
     }
 
     public void chargerDisconnected(){
-        charging = false;
         //Start new interval with special case flag - record processes but don't record details of
         //interval, because first interval after charger disconnect may be of abnormal length
         newInterval(System.currentTimeMillis(), true);
@@ -138,6 +134,7 @@ public class IntervalHandler {
         netRx = TrafficStats.getTotalRxBytes();
         netTx = TrafficStats.getTotalTxBytes();
     }
+    //NOTE: As above, must be called manually in newInterval()
 
     //Interval tracking=============================================================================
     public Interval[] getIntervals(){
@@ -151,8 +148,10 @@ public class IntervalHandler {
         return intervalIndex;
     }
 
+    //Add interval to circular array
     private void addInterval(Interval i){
         intervals[intervalIndex] = i;
+        //Loop circular array if reached end
         if(++intervalIndex >= MAX_INTERVALS){
             intervalIndex = 0;
             maxIntervals = true;
@@ -163,7 +162,7 @@ public class IntervalHandler {
         }
     }
 
-    //Add interval without autosaving
+    //Add interval without triggering periodic autosave
     public void populateInterval(Interval i){
         intervals[intervalIndex] = i;
         if(++intervalIndex >= MAX_INTERVALS){
@@ -175,7 +174,7 @@ public class IntervalHandler {
     private void newInterval(long timestamp, boolean specialCase){
         //Don't record previous interval if there isn't one
         if(firstInterval){
-            //If special case flag is set, the next interval will be the first 'official' one
+            //If special case flag is set, the next interval will be the first recorded one
             if(!specialCase) {
                 firstInterval = false;
             }

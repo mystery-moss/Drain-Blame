@@ -8,6 +8,10 @@ import android.support.v4.app.DialogFragment;
 
 import com.moss.drainblame.R;
 
+/*
+ *  Error popup for unsupported Android versions
+ */
+
 public class ErrorDialog extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {

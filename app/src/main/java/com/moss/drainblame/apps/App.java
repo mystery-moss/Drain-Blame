@@ -1,6 +1,8 @@
 package com.moss.drainblame.apps;
 
-//Information on process state within a battery interval
+/*
+ * Information on process state within a battery interval
+ */
 
 public class App {
     public final String name;               //Packagename, if known, else process name

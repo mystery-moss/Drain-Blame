@@ -7,7 +7,9 @@ import android.os.BatteryManager;
 
 import com.moss.drainblame.intervals.IntervalHandler;
 
-//NB: Receiver should not be registered until after IntervalHandler is initialised!
+/*
+ *  Listen for changes in battery state.
+ */
 
 public class BatteryReceiver extends BroadcastReceiver {
     private boolean startup = true;
