@@ -1,7 +1,7 @@
 # Drain-Blame
-Android app for indentifying apps which drain the battery.
+Android app for identifying apps which drain the battery.
 
-Spawns a background service which collects data on lengths of 1% battery intervals and which apps were atctive during them, and uses this information to classify apps as being *high-*, *medium-*, or *low-drain*.
+Spawns a background service which collects data on lengths of 1% battery intervals and which apps were active during them, and uses this information to classify apps as being *high-*, *medium-*, or *low-drain*.
 
 ## Architecture Overview
 On startup, `MainActivity` is displayed, performs initial setup:
@@ -46,6 +46,6 @@ e.g.
 ```
 
 ## To Do
-* Improve classification algorithm; probably by collected data on app activities within each 30-second sample interval, rather than whole battery intervals.
+* Improve classification algorithm; probably by collecting data on app activities within each 30-second sample interval, rather than whole battery intervals.
 * Determine CPU tick threshold for active apps on a per-device basis, rather than as a hardcoded value - probably by running a benchmark and measuring the CPU ticks used.
 * Add support for newer versions of Android, which block access to the `/proc` directory; make use of the `UsageStatsManager`.
